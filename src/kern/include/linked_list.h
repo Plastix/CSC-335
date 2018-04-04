@@ -6,18 +6,18 @@
 typedef struct Linked_List_Node Linked_List_Node;
 
 struct Linked_List_Node {
-  Linked_List_Node *prev;
-  Linked_List_Node *next;
-  int key;
-  void *data;
+    Linked_List_Node *prev;
+    Linked_List_Node *next;
+    int key;
+    void *data;
 };
 
 typedef struct Linked_List Linked_List;
 
 struct Linked_List {
-  Linked_List_Node *first;
-  Linked_List_Node *last;
-  int length;
+    Linked_List_Node *first;
+    Linked_List_Node *last;
+    int length;
 };
 
 Linked_List *linked_list_create(void);
@@ -30,8 +30,7 @@ Linked_List_Node *linked_list_create_node(int key, void *data);
  * previous minimum key in the list.  If this is the first item, set
  * its key to 0.
  */
-void
-linked_list_prepend(Linked_List *list, void *data);
+void linked_list_prepend(Linked_List *list, void *data);
 
 /*
  * Prints the list.  Adds the int 'which' to the front of the output,
@@ -47,15 +46,13 @@ void linked_list_printlist(Linked_List *list, int which);
  * Inserts into the linked-list so that the items are in order by
  * their keys.
  */
-void
-linked_list_insert(Linked_List *list, int key, void *data);
+void linked_list_insert(Linked_List *list, int key, void *data);
 
 /*
  * Removes the head node from the list.  key is set to the key of the
  * removed node.  The removed item is returned.
  *
  */
-void *
-linked_list_remove_head(Linked_List *list, int *key);
+void *linked_list_remove_head(Linked_List *list, int *key);
 
 #endif
