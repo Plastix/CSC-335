@@ -13,7 +13,7 @@
 # The things that can be set here are documented in mk/os161.config.mk.
 #
 
-OSTREE=/home/andersm2/335/os161/src/../root
+OSTREE=/home/piepera/Desktop/os161-piepera-proj1/src/../root
 PLATFORM=sys161
 MACHINE=mips
 COMPAT_CFLAGS= -DNEED_NTOHLL
