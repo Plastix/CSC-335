@@ -1,0 +1,48 @@
+CSC 335 Project 1
+Aidan Pieper
+
+1. In C, what is the propose of header files, like those found in src/kern/include/?
+
+In C, header files are used to define function signatures and constants which can be imported (via #include) to other
+parts of the codebase. This allows programmers to create interfaces between different parts of code. Header files also
+function as an organization tool grouping related declarations together.
+
+2. Which file contains MIPS assembly for booting the kernel? (Hint: Its where the debugger starts.)  Why is it written
+in assembly rather than C?
+
+The MIPS assembly bootstrap loader is found at src/kern/arch/main/start.S. OS/161 runs on a MIPS processor so we need
+our bootloader to be in code that the processor knows how to interpret (Technically machine code). The job of the
+bootloader is to initialize the processor by setting registers, stack pointers, etc., and then transition to the kernel
+program. Doing this kind of low level setup is very hard to do in C without any kind of stack already setup.
+
+3. What data structures and utility functions have been implemented in src/kern/lib/ for your use?
+Data Structures
+    - Arrays
+    - Bitmaps
+    - uio memory abstraction
+Utility Functions
+    - Printf
+    - Byte swap functions
+    - kgets (For reading console input)
+    - String copy (kstrdup)
+
+4. What are three system calls that OS/161 supports (but that are not yet implemented)?  Where can documentation for
+these calls be found in OS/161?  If you were going to add a brand new system call to OS/161 which files would have to
+be changed?
+Syscalls:
+    1. SYS__exit
+    2. SYS_fork
+    3. SYS_open
+These can be found in /root/kern/syscall.h. When adding a syscall, the syscall function can be defined in a file in
+src/syscall/. The function signature needs to be added to src/kern/include/syscall.h. The function syscall in
+src/kern/arch/mips/syscall.c needs to be updated to dispatch a syscall to the correct function.
+
+5. Pick five of the directories in src/kern/. For each, write a sentence giving a high-level description of the purpose
+of the code in that directory.
+    1. src/kern/lib: Includes data structures and utility functions used throughout the kernel.
+    2. src/kern/include: Contains header files which define interfaces for kernel files.
+    3. src/kern/fs: Contains code related to the OS filesystem.
+    4. src/kern/proc: Contains code related to OS processes.
+    5. src/kern/test: Contains testing code for various kernel parts.
+
+
