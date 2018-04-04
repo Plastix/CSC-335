@@ -12,4 +12,7 @@
 *.swp
 *~
 
+#Clion Files
 .idea/
+CMakeLists.txt
+cmake-build-debug/
