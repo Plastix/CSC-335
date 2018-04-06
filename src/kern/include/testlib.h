@@ -44,28 +44,28 @@ static void (*minunit_setup)(void) = NULL;
 static void (*minunit_teardown)(void) = NULL;
 
 /*  Definitions */
-#define MU_TEST(method_name) static void method_name(void)
-#define MU_TEST_SUITE(suite_name) static void suite_name(void)
+#define TEST(method_name) static void method_name(void)
+#define TEST_SUITE(suite_name) static void suite_name(void)
 
-#define MU__SAFE_BLOCK(block) do {\
+#define _SAFE_BLOCK(block) do {\
     block\
 } while(0)
 
 /*  Run test suite and unset setup and teardown functions */
-#define MU_RUN_SUITE(suite_name) MU__SAFE_BLOCK(\
+#define RUN_SUITE(suite_name) _SAFE_BLOCK(\
     suite_name();\
     minunit_setup = NULL;\
     minunit_teardown = NULL;\
 )
 
 /*  Configure setup and teardown functions */
-#define MU_SUITE_CONFIGURE(setup_fun, teardown_fun) MU__SAFE_BLOCK(\
+#define SUITE_CONFIGURE(setup_fun, teardown_fun) _SAFE_BLOCK(\
     minunit_setup = setup_fun;\
     minunit_teardown = teardown_fun;\
 )
 
 /*  Test runner */
-#define MU_RUN_TEST(test) MU__SAFE_BLOCK(\
+#define RUN_TEST(test) _SAFE_BLOCK(\
     if (minunit_setup) (*minunit_setup)();\
     minunit_status = 0;\
     test();\
@@ -78,12 +78,12 @@ static void (*minunit_teardown)(void) = NULL;
 )
 
 /*  Report */
-#define MU_REPORT() MU__SAFE_BLOCK(\
+#define TEST_REPORT() _SAFE_BLOCK(\
     kprintf("\n\n%d tests, %d assertions, %d failures\n", minunit_run, minunit_assert, minunit_fail);\
 )
 
 /*  Assertions */
-#define mu_check(test) MU__SAFE_BLOCK(\
+#define CHECK(test) _SAFE_BLOCK(\
     minunit_assert++;\
     if (!(test)) {\
         snprintf(minunit_last_message, MINUNIT_MESSAGE_LEN, "FAIL: %s\n\t%s:%d: %s", __func__, __FILE__, __LINE__, #test);\
@@ -94,14 +94,14 @@ static void (*minunit_teardown)(void) = NULL;
     }\
 )
 
-#define mu_fail(message) MU__SAFE_BLOCK(\
+#define FAIL(message) _SAFE_BLOCK(\
     minunit_assert++;\
     snprintf(minunit_last_message, MINUNIT_MESSAGE_LEN, "FAIL: %s\n\t%s:%d: %s", __func__, __FILE__, __LINE__, message);\
     minunit_status = 1;\
     return;\
 )
 
-#define mu_assert(test, message) MU__SAFE_BLOCK(\
+#define ASSERT(test, message) _SAFE_BLOCK(\
     minunit_assert++;\
     if (!(test)) {\
         snprintf(minunit_last_message, MINUNIT_MESSAGE_LEN, "FAIL: %s\n\t%s:%d: %s", __func__, __FILE__, __LINE__, message);\
@@ -112,7 +112,7 @@ static void (*minunit_teardown)(void) = NULL;
     }\
 )
 
-#define mu_assert_int_eq(expected, result) MU__SAFE_BLOCK(\
+#define ASSERT_INT_EQ(expected, result) _SAFE_BLOCK(\
     int minunit_tmp_e;\
     int minunit_tmp_r;\
     minunit_assert++;\
@@ -127,7 +127,7 @@ static void (*minunit_teardown)(void) = NULL;
     }\
 )
 
-#define mu_assert_string_eq(expected, result) MU__SAFE_BLOCK(\
+#define ASSERT_STR_EQ(expected, result) _SAFE_BLOCK(\
     const char* minunit_tmp_e = expected;\
     const char* minunit_tmp_r = result;\
     minunit_assert++;\

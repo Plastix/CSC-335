@@ -25,48 +25,48 @@
 //    KASSERT(linked_list->length == length + 10);
 //}
 
-MU_TEST(test_check) {
-    mu_check(5 == 7);
+TEST(test_check) {
+    CHECK(5 == 7);
 }
 
-MU_TEST(test_assert) {
-    mu_assert(5 == 7, "Test Assert Message");
+TEST(test_assert) {
+    ASSERT(5 == 7, "Test Assert Message");
 }
 
-MU_TEST(int_compare) {
-    mu_assert_int_eq(1, 1);
+TEST(int_compare) {
+    ASSERT_INT_EQ(1, 1);
 }
 
-MU_TEST(int_compare2) {
-    mu_assert_int_eq(1, 2);
+TEST(int_compare2) {
+    ASSERT_INT_EQ(1, 2);
 }
 
 
-MU_TEST(str_compare) {
-    mu_assert_string_eq("Hello", "Test");
+TEST(str_compare) {
+    ASSERT_STR_EQ("Hello", "Test");
 }
 
-MU_TEST(str_compare2) {
-    mu_assert_string_eq("Hello", "Hello");
+TEST(str_compare2) {
+    ASSERT_STR_EQ("Hello", "Hello");
 }
 
-MU_TEST(test_fail) {
-    mu_fail("this should fail");
+TEST(test_fail) {
+    FAIL("this should fail");
 }
 
-MU_TEST_SUITE(test_suite) {
-    MU_RUN_TEST(test_check);
-    MU_RUN_TEST(test_assert);
-    MU_RUN_TEST(int_compare);
-    MU_RUN_TEST(int_compare2);
-    MU_RUN_TEST(str_compare);
-    MU_RUN_TEST(str_compare2);
-    MU_RUN_TEST(test_fail);
+TEST_SUITE(test_suite) {
+    RUN_TEST(test_check);
+    RUN_TEST(test_assert);
+    RUN_TEST(int_compare);
+    RUN_TEST(int_compare2);
+    RUN_TEST(str_compare);
+    RUN_TEST(str_compare2);
+    RUN_TEST(test_fail);
 }
 
 int linked_list_test_run(int nargs, char **args) {
-    MU_RUN_SUITE(test_suite);
-    MU_REPORT();
+    RUN_SUITE(test_suite);
+    TEST_REPORT();
     return 0;
 }
 
