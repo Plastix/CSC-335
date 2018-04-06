@@ -113,11 +113,9 @@ static void (*minunit_teardown)(void) = NULL;
 )
 
 #define ASSERT_INT_EQ(expected, result) _SAFE_BLOCK(\
-    int minunit_tmp_e;\
-    int minunit_tmp_r;\
+    int minunit_tmp_e = expected;\
+    int minunit_tmp_r = result;\
     minunit_assert++;\
-    minunit_tmp_e = (expected);\
-    minunit_tmp_r = (result);\
     if (minunit_tmp_e != minunit_tmp_r) {\
         snprintf(minunit_last_message, MINUNIT_MESSAGE_LEN, "FAIL: %s\n\t%s:%d: %d expected but was %d", __func__, __FILE__, __LINE__, minunit_tmp_e, minunit_tmp_r);\
         minunit_status = 1;\

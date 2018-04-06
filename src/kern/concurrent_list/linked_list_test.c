@@ -5,6 +5,65 @@
 #include <test.h>
 #include <testlib.h>
 
+static Linked_List *list;
+
+void test_setup(void) {
+    list = linked_list_create();
+}
+
+void test_teardown(void) {
+    kfree(list);
+}
+
+TEST(empty_list) {
+    ASSERT_INT_EQ(0, list->length);
+}
+
+TEST(append_test1) {
+    int *c = kmalloc(sizeof(int));
+    *c = 10;
+    linked_list_prepend(list, c);
+
+    ASSERT_INT_EQ(1, list->length);
+    ASSERT_INT_EQ(*c, *(int *) list->first->data);
+}
+
+TEST(append_test2) {
+    for(int i = 0; i < 3; i ++) {
+        int *num = kmalloc(sizeof(int));
+        *num = i;
+        linked_list_prepend(list, num);
+
+        if(i == 1){
+            ASSERT_INT_EQ(2, list->length);
+            ASSERT_INT_EQ(1, *(int *) list->first->data);
+        }else if(i == 2){
+            ASSERT_INT_EQ(3, list->length);
+            ASSERT_INT_EQ(2, *(int *) list->first->data);
+        }
+    }
+}
+
+TEST_SUITE(linked_list_tests) {
+    SUITE_CONFIGURE(&test_setup, &test_teardown);
+
+    RUN_TEST(empty_list);
+    RUN_TEST(append_test1);
+    RUN_TEST(append_test2);
+}
+
+int linked_list_test_run(int nargs, char **args) {
+    int testnum = 0;
+    if (nargs == 2) {
+        testnum = args[1][0] - '0'; // XXX - Hack - only works for testnum 0 -- 9
+    }
+    kprintf("Running Test: %d\n", testnum);
+
+    RUN_SUITE(linked_list_tests);
+    TEST_REPORT();
+    return 0;
+}
+
 //static void linked_list_test_adder(void *list, unsigned long which) {
 //    splhigh();
 //
@@ -24,51 +83,6 @@
 //
 //    KASSERT(linked_list->length == length + 10);
 //}
-
-TEST(test_check) {
-    CHECK(5 == 7);
-}
-
-TEST(test_assert) {
-    ASSERT(5 == 7, "Test Assert Message");
-}
-
-TEST(int_compare) {
-    ASSERT_INT_EQ(1, 1);
-}
-
-TEST(int_compare2) {
-    ASSERT_INT_EQ(1, 2);
-}
-
-
-TEST(str_compare) {
-    ASSERT_STR_EQ("Hello", "Test");
-}
-
-TEST(str_compare2) {
-    ASSERT_STR_EQ("Hello", "Hello");
-}
-
-TEST(test_fail) {
-    FAIL("this should fail");
-}
-
-TEST_SUITE(test_suite) {
-    RUN_TEST(test_check);
-    RUN_TEST(test_assert);
-    RUN_TEST(int_compare);
-    RUN_TEST(int_compare2);
-    RUN_TEST(str_compare);
-    RUN_TEST(str_compare2);
-    RUN_TEST(test_fail);
-}
-
-int linked_list_test_run(int nargs, char **args) {
-    RUN_SUITE(test_suite);
-    TEST_REPORT();
-    return 0;
-}
 
 //int linked_list_test_run(int nargs, char **args) {
 //    int testnum = 0;
