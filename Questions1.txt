@@ -30,12 +30,13 @@ Utility Functions
 these calls be found in OS/161?  If you were going to add a brand new system call to OS/161 which files would have to
 be changed?
 Syscalls:
-    1. SYS__exit
+    1. SYS_exit
     2. SYS_fork
     3. SYS_open
 These can be found in /root/kern/syscall.h. When adding a syscall, the syscall function can be defined in a file in
 src/syscall/. The function signature needs to be added to src/kern/include/syscall.h. The function syscall in
-src/kern/arch/mips/syscall.c needs to be updated to dispatch a syscall to the correct function.
+src/kern/arch/mips/syscall.c needs to be updated to dispatch a syscall to the correct function. Documentation for
+particular syscalls can be found in src/man/syscall/<call>.html.
 
 5. Pick five of the directories in src/kern/. For each, write a sentence giving a high-level description of the purpose
 of the code in that directory.
