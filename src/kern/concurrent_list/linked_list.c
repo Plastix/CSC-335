@@ -57,7 +57,7 @@ void linked_list_printlist(Linked_List *list, int which) {
 
 void linked_list_insert(Linked_List *list, int key, void *data) {
     // Don't insert into NULL lists
-    if (!list) {
+    if (list == NULL) {
         return;
     }
 
@@ -68,25 +68,33 @@ void linked_list_insert(Linked_List *list, int key, void *data) {
         list->last = new;
     } else {
 
-        while (runner->next != NULL && runner->key < key) {
+        while (runner != NULL && runner->key < key) {
             runner = runner->next;
         }
 
-        if (runner->prev == NULL) {
+        if (runner != NULL) {
+            Linked_List_Node *prev = runner->prev;
+            new->next = runner;
+            new->prev = prev;
+            runner->prev = new;
+
+            if (prev != NULL) {
+                prev->next = new;
+            }
+        } else {
+            Linked_List_Node *last = list->last;
+            new->next = NULL;
+            new->prev = last;
+            last->next = new;
+        }
+
+        if (new->prev == NULL) {
             list->first = new;
         }
 
-        Linked_List_Node *next = runner->next;
-        runner->next = new;
-        new->prev = runner;
-        new->next = next;
-
-        if (next != NULL) {
-            next->prev = new;
-        } else {
+        if (new->next == NULL) {
             list->last = new;
         }
-
     }
 
     list->length++;
@@ -94,13 +102,33 @@ void linked_list_insert(Linked_List *list, int key, void *data) {
 
 void *linked_list_remove_head(Linked_List *list, int *key) {
     // Don't remove from NULL lists
-    if (!list) {
+    if (list == NULL) {
         return NULL;
     }
-    //TODO
-    list = list;
-    key = key;
-    return NULL;
+
+    Linked_List_Node *removed = list->first;
+    if (removed == NULL) {
+        return NULL;
+    }
+
+    Linked_List_Node *new_head = removed->next;
+    void *data = removed->data;
+    *key = removed->key;
+
+    list->first = new_head;
+
+    if (new_head != NULL) {
+        new_head->prev = NULL;
+    }
+
+    if (list->length <= 2) {
+        list->last = new_head;
+    }
+
+    list->length--;
+    kfree(removed);
+
+    return data;
 }
 
 /**
