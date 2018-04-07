@@ -1,3 +1,3 @@
 #! /bin/bash
 ./compile.sh
-./boot.sh
+./boot.sh $@
