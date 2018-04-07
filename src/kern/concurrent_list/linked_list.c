@@ -2,7 +2,7 @@
 #include <lib.h>
 
 Linked_List *linked_list_create(void) {
-    Linked_List*ptr = kmalloc(sizeof(Linked_List));
+    Linked_List *ptr = kmalloc(sizeof(Linked_List));
     ptr->length = 0;
     ptr->first = NULL;
     ptr->last = NULL;
@@ -51,6 +51,20 @@ void linked_list_printlist(Linked_List *list, int which) {
     }
 
     kprintf("\n");
+}
+
+void linked_list_insert(Linked_List *list, int key, void *data) {
+    // TODO
+    list = list;
+    key = key;
+    data = data;
+}
+
+void *linked_list_remove_head(Linked_List *list, int *key) {
+    //TODO
+    list = list;
+    key = key;
+    return NULL;
 }
 
 /**
