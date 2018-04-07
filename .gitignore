@@ -16,3 +16,6 @@
 .idea/
 CMakeLists.txt
 cmake-build-debug/
+
+# Allow gdb init
+!root/.gdbinit

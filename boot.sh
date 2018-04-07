@@ -1,3 +1,3 @@
 #! /bin/bash
 cd root
-sys161 kernel
+sys161 -p 8091 kernel
