@@ -68,6 +68,7 @@ static void (*minunit_teardown)(void) = NULL;
 #define RUN_TEST(test) _SAFE_BLOCK(\
     if (minunit_setup) (*minunit_setup)();\
     minunit_status = 0;\
+    kprintf("\nRunning test: %s\n", #test);\
     test();\
     minunit_run++;\
     if (minunit_status) {\

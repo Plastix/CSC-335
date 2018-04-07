@@ -1,6 +1,8 @@
 #include <linked_list.h>
 #include <lib.h>
 
+#define NULL ((void *)0)
+
 Linked_List *linked_list_create(void) {
     Linked_List *ptr = kmalloc(sizeof(Linked_List));
     ptr->length = 0;
@@ -54,13 +56,47 @@ void linked_list_printlist(Linked_List *list, int which) {
 }
 
 void linked_list_insert(Linked_List *list, int key, void *data) {
-    // TODO
-    list = list;
-    key = key;
-    data = data;
+    // Don't insert into NULL lists
+    if (!list) {
+        return;
+    }
+
+    Linked_List_Node *new = linked_list_create_node(key, data);
+    Linked_List_Node *runner = list->first;
+    if (runner == NULL) {
+        list->first = new;
+        list->last = new;
+    } else {
+
+        while (runner->next != NULL && runner->key < key) {
+            runner = runner->next;
+        }
+
+        if (runner->prev == NULL) {
+            list->first = new;
+        }
+
+        Linked_List_Node *next = runner->next;
+        runner->next = new;
+        new->prev = runner;
+        new->next = next;
+
+        if (next != NULL) {
+            next->prev = new;
+        } else {
+            list->last = new;
+        }
+
+    }
+
+    list->length++;
 }
 
 void *linked_list_remove_head(Linked_List *list, int *key) {
+    // Don't remove from NULL lists
+    if (!list) {
+        return NULL;
+    }
     //TODO
     list = list;
     key = key;

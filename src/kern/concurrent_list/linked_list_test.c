@@ -98,10 +98,12 @@ TEST(insert_empty_list) {
 
     ASSERT_INT_EQ(1, list->length);
     Linked_List_Node *first = list->first;
+    ASSERT(first != NULL, "First node is null!");
     ASSERT_INT_EQ(*data, *(int *) first->data);
+    ASSERT_INT_EQ(0, first->key);
+
     Linked_List_Node *last = list->last;
-    CHECK(first == last);
-    ASSERT_INT_EQ(0, *(int *) first->key);
+    ASSERT(first == last, "First and last nodes different");
 
     kfree(data);
 }
@@ -116,10 +118,12 @@ TEST(insert_front_singleton) {
     ASSERT_INT_EQ(2, list->length);
     Linked_List_Node *first = list->first;
     Linked_List_Node *last = list->last;
-    CHECK(first != last);
+    ASSERT(first != NULL, "First node is null!");
+    ASSERT(last != NULL, "Last node is null!");
+    ASSERT(first != last, "First and last nodes are the same!");
     ASSERT_INT_EQ(*two, *(int *) first->data);
     ASSERT_INT_EQ(*one, *(int *) last->data);
-    ASSERT_INT_EQ(-1, *(int *) first->key);
+    ASSERT_INT_EQ(-1, first->key);
 
     kfree(one);
     kfree(two);
@@ -135,10 +139,10 @@ TEST(insert_back_singleton) {
     ASSERT_INT_EQ(2, list->length);
     Linked_List_Node *first = list->first;
     Linked_List_Node *last = list->last;
-    CHECK(first != last);
+    ASSERT(first != last, "First and last nodes are the same!");
     ASSERT_INT_EQ(*two, *(int *) last->data);
     ASSERT_INT_EQ(*one, *(int *) first->data);
-    ASSERT_INT_EQ(1, *(int *) last->key);
+    ASSERT_INT_EQ(1, last->key);
 
     kfree(one);
     kfree(two);
@@ -225,7 +229,7 @@ TEST(insert_middle) {
 TEST(remove_null_list) {
     int *key = allocate_int(5);
     Linked_List_Node *removed = linked_list_remove_head(NULL, key);
-    CHECK(!removed);
+    ASSERT(removed == NULL, "Removed node is non-null!");
     ASSERT_INT_EQ(5, *key);
     kfree(key);
 }
@@ -233,7 +237,7 @@ TEST(remove_null_list) {
 TEST(remove_empty_list) {
     int *key = allocate_int(5);
     Linked_List_Node *removed = linked_list_remove_head(list, key);
-    CHECK(!removed);
+    ASSERT(removed == NULL, "Removed node is non-null!");
     ASSERT_INT_EQ(5, *key);
     kfree(key);
 }
@@ -244,7 +248,7 @@ TEST(remove_singleton) {
 
     int *key = allocate_int(5);
     Linked_List_Node *removed = linked_list_remove_head(list, key);
-    CHECK(removed);
+    ASSERT(removed != NULL, "Removed node is null!");
     ASSERT_INT_EQ(0, *key);
     ASSERT_INT_EQ(10, *(int *) removed->data);
     ASSERT_INT_EQ(0, removed->key);
@@ -267,7 +271,7 @@ TEST(remove_nonempty) {
 
     int *key = allocate_int(5);
     Linked_List_Node *removed = linked_list_remove_head(list, key);
-    CHECK(removed);
+    ASSERT(removed != NULL, "Removed node is null!");
     ASSERT_INT_EQ(-1, *key);
     ASSERT_INT_EQ(20, *(int *) removed->data);
     ASSERT_INT_EQ(-1, removed->key);
@@ -314,7 +318,7 @@ int linked_list_test_run(int nargs, char **args) {
         testnum = args[1][0] - '0'; // XXX - Hack - only works for testnum 0 -- 9
     }
 
-    kprintf("Running Test: %d\n", testnum);
+    kprintf("Running Test Suite: %d\n", testnum);
     RUN_SUITE(linked_list_tests);
     TEST_REPORT();
     return 0;
