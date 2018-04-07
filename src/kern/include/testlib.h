@@ -1,6 +1,6 @@
 /*
  * Copyright (c) 2012 David Siñuela Pastor, siu.4coders@gmail.com
- * Ported to OS 161 by Aidan Pieper
+ * Modified and Ported to OS 161 by Aidan Pieper
  * 
  * Permission is hereby granted, free of charge, to any person obtaining
  * a copy of this software and associated documentation files (the
@@ -53,6 +53,10 @@ static void (*minunit_teardown)(void) = NULL;
 
 /*  Run test suite and unset setup and teardown functions */
 #define RUN_SUITE(suite_name) _SAFE_BLOCK(\
+    minunit_run = 0;\
+    minunit_assert = 0;\
+    minunit_fail = 0;\
+    minunit_status = 0;\
     suite_name();\
     minunit_setup = NULL;\
     minunit_teardown = NULL;\
@@ -84,17 +88,6 @@ static void (*minunit_teardown)(void) = NULL;
 )
 
 /*  Assertions */
-#define CHECK(test) _SAFE_BLOCK(\
-    minunit_assert++;\
-    if (!(test)) {\
-        snprintf(minunit_last_message, MINUNIT_MESSAGE_LEN, "FAIL: %s\n\t%s:%d: %s", __func__, __FILE__, __LINE__, #test);\
-        minunit_status = 1;\
-        return;\
-    } else {\
-        kprintf(".");\
-    }\
-)
-
 #define FAIL(message) _SAFE_BLOCK(\
     minunit_assert++;\
     snprintf(minunit_last_message, MINUNIT_MESSAGE_LEN, "FAIL: %s\n\t%s:%d: %s", __func__, __FILE__, __LINE__, message);\
@@ -144,3 +137,6 @@ static void (*minunit_teardown)(void) = NULL;
         kprintf(".");\
     }\
 )
+
+#define ASSERT_NULL(ptr) ASSERT((ptr) == NULL, "Pointer is not null!")
+#define ASSERT_NOT_NULL(ptr) ASSERT((ptr) != NULL, "Pointer is null!")

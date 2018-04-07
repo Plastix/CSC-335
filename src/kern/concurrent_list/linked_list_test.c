@@ -40,17 +40,17 @@ void test_teardown(void) {
 //
 TEST(empty_list) {
     ASSERT_INT_EQ(0, list->length);
-    CHECK(!list->first);
-    CHECK(!list->length);
+    ASSERT_NULL(list->first);
+    ASSERT_NULL(list->last);
 }
 
 TEST(node_creation) {
     Linked_List_Node *node = linked_list_create_node(10, NULL);
 
     ASSERT_INT_EQ(10, node->key);
-    CHECK(!node->next);
-    CHECK(!node->prev);
-    CHECK(!node->data);
+    ASSERT_NULL(node->next);
+    ASSERT_NULL(node->prev);
+    ASSERT_NULL(node->data);
 
     kfree(node);
 }
@@ -61,7 +61,11 @@ TEST(append_test1) {
 
     ASSERT_INT_EQ(1, list->length);
     Linked_List_Node *first = list->first;
+    Linked_List_Node *last = list->last;
+    ASSERT_NOT_NULL(first);
+    ASSERT_NOT_NULL(last);
     ASSERT_INT_EQ(*num, *(int *) first->data);
+    ASSERT(first == last, "First and last nodes are not the same!");
 
     kfree(num);
 }
@@ -78,6 +82,8 @@ TEST(append_test2) {
 
     Linked_List_Node *first = list->first;
     Linked_List_Node *last = list->last;
+    ASSERT_NOT_NULL(first);
+    ASSERT_NOT_NULL(last);
     ASSERT_INT_EQ(2, *(int *) first->data);
     ASSERT_INT_EQ(0, *(int *) last->data);
 
@@ -98,19 +104,21 @@ TEST(insert_empty_list) {
 
     ASSERT_INT_EQ(1, list->length);
     Linked_List_Node *first = list->first;
-    ASSERT(first != NULL, "First node is null!");
+    ASSERT_NOT_NULL(first);
+    ASSERT_NULL(first->prev);
+    ASSERT_NULL(first->next);
     ASSERT_INT_EQ(*data, *(int *) first->data);
     ASSERT_INT_EQ(0, first->key);
 
     Linked_List_Node *last = list->last;
-    ASSERT(first == last, "First and last nodes different");
+    ASSERT(first == last, "First and last nodes are not the same!");
 
     kfree(data);
 }
 
 TEST(insert_front_singleton) {
     int *one = allocate_int(5);
-    linked_list_prepend(list, one);
+    linked_list_prepend(list, one); // key = 0
 
     int *two = allocate_int(10);
     linked_list_insert(list, -1, two);
@@ -118,8 +126,13 @@ TEST(insert_front_singleton) {
     ASSERT_INT_EQ(2, list->length);
     Linked_List_Node *first = list->first;
     Linked_List_Node *last = list->last;
-    ASSERT(first != NULL, "First node is null!");
-    ASSERT(last != NULL, "Last node is null!");
+    ASSERT_NOT_NULL(first);
+    ASSERT_NOT_NULL(last);
+    ASSERT_NULL(first->prev);
+    ASSERT_NULL(last->next);
+    ASSERT(first->next == last, "First does not point to next!");
+    ASSERT(last->prev == first, "Last does not point to first!");
+
     ASSERT(first != last, "First and last nodes are the same!");
     ASSERT_INT_EQ(*two, *(int *) first->data);
     ASSERT_INT_EQ(*one, *(int *) last->data);
@@ -131,7 +144,7 @@ TEST(insert_front_singleton) {
 
 TEST(insert_back_singleton) {
     int *one = allocate_int(5);
-    linked_list_prepend(list, one);
+    linked_list_prepend(list, one); // key = 0
 
     int *two = allocate_int(10);
     linked_list_insert(list, 1, two);
@@ -139,6 +152,14 @@ TEST(insert_back_singleton) {
     ASSERT_INT_EQ(2, list->length);
     Linked_List_Node *first = list->first;
     Linked_List_Node *last = list->last;
+
+    ASSERT_NOT_NULL(first);
+    ASSERT_NOT_NULL(last);
+    ASSERT_NULL(first->prev);
+    ASSERT_NULL(last->next);
+    ASSERT(first->next == last, "First does not point to next!");
+    ASSERT(last->prev == first, "Last does not point to first!");
+
     ASSERT(first != last, "First and last nodes are the same!");
     ASSERT_INT_EQ(*two, *(int *) last->data);
     ASSERT_INT_EQ(*one, *(int *) first->data);
@@ -155,14 +176,28 @@ TEST(insert_front_nonempty) {
             allocate_int(3),
     };
 
-    linked_list_prepend(list, nums[0]); // 0
-    linked_list_prepend(list, nums[1]); // -1
+    linked_list_prepend(list, nums[0]); // key = 0
+    linked_list_prepend(list, nums[1]); // key = -1
 
     linked_list_insert(list, -2, nums[2]);
 
     ASSERT_INT_EQ(3, list->length);
     Linked_List_Node *first = list->first;
+    Linked_List_Node *last = list->last;
+    ASSERT_NOT_NULL(first);
+    ASSERT_NOT_NULL(last);
+    ASSERT_NULL(first->prev);
     ASSERT_INT_EQ(*nums[2], *(int *) first->data);
+    ASSERT_INT_EQ(-2, first->key);
+
+    Linked_List_Node *second = first->next;
+    Linked_List_Node *third = second->next;
+
+    ASSERT_NOT_NULL(second);
+    ASSERT_NOT_NULL(third);
+    ASSERT(second->prev == first, "Second does not point to first!");
+    ASSERT(third->prev == second, "Third does not point to second!");
+    ASSERT_NULL(third->next);
 
     clear_ints(nums, 3);
 }
@@ -174,14 +209,28 @@ TEST(insert_front_nonempty_samekey) {
             allocate_int(3),
     };
 
-    linked_list_prepend(list, nums[0]); // 0
-    linked_list_prepend(list, nums[1]); // -1
+    linked_list_prepend(list, nums[0]); // key = 0
+    linked_list_prepend(list, nums[1]); // key = -1
 
     linked_list_insert(list, -1, nums[2]);
 
     ASSERT_INT_EQ(3, list->length);
     Linked_List_Node *first = list->first;
+    Linked_List_Node *last = list->last;
+    ASSERT_NOT_NULL(first);
+    ASSERT_NOT_NULL(last);
+    ASSERT_NULL(first->prev);
     ASSERT_INT_EQ(*nums[2], *(int *) first->data);
+    ASSERT_INT_EQ(-1, first->key);
+
+    Linked_List_Node *second = first->next;
+    Linked_List_Node *third = second->next;
+
+    ASSERT_NOT_NULL(second);
+    ASSERT_NOT_NULL(third);
+    ASSERT(second->prev == first, "Second does not point to first!");
+    ASSERT(third->prev == second, "Third does not point to second!");
+    ASSERT_NULL(third->next);
 
     clear_ints(nums, 3);
 }
@@ -194,14 +243,27 @@ TEST(insert_back_nonempty) {
             allocate_int(3),
     };
 
-    linked_list_prepend(list, nums[0]); // 0
-    linked_list_prepend(list, nums[1]); // -1
+    linked_list_prepend(list, nums[0]); // key = 0
+    linked_list_prepend(list, nums[1]); // key = -1 r
 
     linked_list_insert(list, 1, nums[2]);
 
     ASSERT_INT_EQ(3, list->length);
     Linked_List_Node *last = list->last;
+    Linked_List_Node *first = list->first;
+    ASSERT_NOT_NULL(first);
+    ASSERT_NOT_NULL(last);
+    ASSERT_NULL(last->next);
     ASSERT_INT_EQ(*nums[2], *(int *) last->data);
+    ASSERT_INT_EQ(1, first->key);
+
+    Linked_List_Node *second = first->next;
+    Linked_List_Node *third = second->next;
+
+    ASSERT_NOT_NULL(second);
+    ASSERT_NOT_NULL(third);
+    ASSERT(second->prev == first, "Second does not point to first!");
+    ASSERT(third->prev == second, "Third does not point to second!");
 
     clear_ints(nums, 3);
 }
@@ -213,15 +275,24 @@ TEST(insert_middle) {
             allocate_int(3),
     };
 
-    linked_list_prepend(list, nums[0]); // 0
-    linked_list_prepend(list, nums[1]); // -1
+    linked_list_prepend(list, nums[0]); // key = 0
+    linked_list_prepend(list, nums[1]); // key = -1
 
     linked_list_insert(list, 0, nums[2]);
 
     ASSERT_INT_EQ(3, list->length);
     Linked_List_Node *first = list->first;
     Linked_List_Node *second = first->next;
+    Linked_List_Node *third = second->next;
+    ASSERT_NOT_NULL(first);
+    ASSERT_NOT_NULL(second);
+    ASSERT_NOT_NULL(third);
     ASSERT_INT_EQ(*nums[2], *(int *) second->data);
+    ASSERT_INT_EQ(0, second->key);
+
+    ASSERT(second->prev == first, "Second does not point to first!");
+    ASSERT(third->prev == second, "Third does not point to second!");
+
 
     clear_ints(nums, 3);
 }
@@ -229,7 +300,7 @@ TEST(insert_middle) {
 TEST(remove_null_list) {
     int *key = allocate_int(5);
     Linked_List_Node *removed = linked_list_remove_head(NULL, key);
-    ASSERT(removed == NULL, "Removed node is non-null!");
+    ASSERT_NULL(removed);
     ASSERT_INT_EQ(5, *key);
     kfree(key);
 }
@@ -237,7 +308,7 @@ TEST(remove_null_list) {
 TEST(remove_empty_list) {
     int *key = allocate_int(5);
     Linked_List_Node *removed = linked_list_remove_head(list, key);
-    ASSERT(removed == NULL, "Removed node is non-null!");
+    ASSERT_NULL(removed);
     ASSERT_INT_EQ(5, *key);
     kfree(key);
 }
@@ -248,11 +319,11 @@ TEST(remove_singleton) {
 
     int *key = allocate_int(5);
     Linked_List_Node *removed = linked_list_remove_head(list, key);
-    ASSERT(removed != NULL, "Removed node is null!");
+    ASSERT_NOT_NULL(removed);
     ASSERT_INT_EQ(0, *key);
     ASSERT_INT_EQ(10, *(int *) removed->data);
     ASSERT_INT_EQ(0, removed->key);
-    CHECK(!list->first);
+    ASSERT_NULL(list->first);
     ASSERT_INT_EQ(0, list->length);
 
     kfree(data);
@@ -271,11 +342,11 @@ TEST(remove_nonempty) {
 
     int *key = allocate_int(5);
     Linked_List_Node *removed = linked_list_remove_head(list, key);
-    ASSERT(removed != NULL, "Removed node is null!");
+    ASSERT_NOT_NULL(removed);
     ASSERT_INT_EQ(-1, *key);
     ASSERT_INT_EQ(20, *(int *) removed->data);
     ASSERT_INT_EQ(-1, removed->key);
-    CHECK(list->first);
+    ASSERT_NOT_NULL(list->first);
     ASSERT_INT_EQ(1, list->length);
 
     clear_ints(nums, 2);
