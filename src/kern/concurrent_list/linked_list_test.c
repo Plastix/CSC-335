@@ -2,6 +2,7 @@
 #include <lib.h>
 #include <test.h>
 #include <testlib.h>
+#include <thread.h>
 
 //
 // Helper Functions
@@ -424,14 +425,52 @@ TEST_SUITE(linked_list_tests) {
 }
 
 
+//
+// Concurrent Tests
+// These are meant to show the linked list breaking with used from multiple threads.
+//
+void interleave_1_thread(void *args, unsigned long count) {
+    // Hacky fix to fix unused param warning
+    count = count;
+
+    linked_list_insert(list, 0, args);
+}
+
+TEST(interleaving_1) {
+    test_num = 0;
+
+    // Setup yield positions
+    yield_array[test_num][0] = 1;
+
+    int *nums[2] = {
+            allocate_int(10),
+            allocate_int(20)
+    };
+
+    thread_fork("thread1", NULL, interleave_1_thread, nums[0], 0);
+    thread_fork("thread2", NULL, interleave_1_thread, nums[1], 0);
+
+    // TODO Wait for threads
+//    clear_ints(nums, 2);
+}
+
+
+TEST_SUITE(concurrent_tests) {
+    SUITE_CONFIGURE(&test_setup, &test_teardown);
+
+    RUN_TEST(interleaving_1);
+}
+
 int linked_list_test_run(int nargs, char **args) {
     int testnum = 0;
     if (nargs == 2) {
         testnum = args[1][0] - '0'; // XXX - Hack - only works for testnum 0 -- 9
     }
 
-    kprintf("Running Test Suite: %d\n", testnum);
+    kprintf("%d", testnum);
+    RESET_COUNTERS();
     RUN_SUITE(linked_list_tests);
+    RUN_SUITE(concurrent_tests);
     TEST_REPORT();
     return 0;
 }

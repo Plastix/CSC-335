@@ -1,7 +1,6 @@
 #include <linked_list.h>
 #include <lib.h>
-
-#define NULL ((void *)0)
+#include <thread.h>
 
 Linked_List *linked_list_create(void) {
     Linked_List *ptr = kmalloc(sizeof(Linked_List));
@@ -64,6 +63,8 @@ void linked_list_insert(Linked_List *list, int key, void *data) {
     Linked_List_Node *new = linked_list_create_node(key, data);
     Linked_List_Node *runner = list->first;
     if (runner == NULL) {
+        yield_if_should(0);
+
         list->first = new;
         list->last = new;
     } else {
@@ -131,6 +132,12 @@ void *linked_list_remove_head(Linked_List *list, int *key) {
     return data;
 }
 
+void yield_if_should(int location) {
+    if (yield_array[test_num][location]) {
+        thread_yield();
+    }
+}
+
 /**
 Questions:
 1. What is the type of data in the Linked_List_Node struct?  Explain.
@@ -173,9 +180,7 @@ Questions:
 
  "spl" stands for "set priority level" which allows the programmer to change how interrupts are handled by the kernel.
  splhigh() disables all interrupts on the current processor. If this is removed then all the test printout is messed up
- and the kernel panics and crashes.
-
- ####
- Why is this called in link list tests??\
- ###
+ (interleaved) and the kernel panics and crashes. This is because the kernel is using timer-based interrupts to switch
+ between the threads to perform multiprogramming. Without these interrupts, the first thread gains control of the
+ processor and the second thread only starts running once the first thread finishes.
  */

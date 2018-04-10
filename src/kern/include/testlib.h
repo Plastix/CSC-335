@@ -26,6 +26,7 @@
 
 /*  Maximum length of last message */
 #define MINUNIT_MESSAGE_LEN (sizeof(char) * 1024)
+#define STRING_SEPARATOR "########################################"
 
 #define NULL ((void *)0)
 
@@ -53,13 +54,17 @@ static void (*minunit_teardown)(void) = NULL;
 
 /*  Run test suite and unset setup and teardown functions */
 #define RUN_SUITE(suite_name) _SAFE_BLOCK(\
+    kprintf("\n\n%s\nTest Suite: %s\n%s\n", STRING_SEPARATOR, #suite_name, STRING_SEPARATOR);\
+    suite_name();\
+    minunit_setup = NULL;\
+    minunit_teardown = NULL;\
+)
+
+#define RESET_COUNTERS() _SAFE_BLOCK(\
     minunit_run = 0;\
     minunit_assert = 0;\
     minunit_fail = 0;\
     minunit_status = 0;\
-    suite_name();\
-    minunit_setup = NULL;\
-    minunit_teardown = NULL;\
 )
 
 /*  Configure setup and teardown functions */
@@ -72,7 +77,7 @@ static void (*minunit_teardown)(void) = NULL;
 #define RUN_TEST(test) _SAFE_BLOCK(\
     if (minunit_setup) (*minunit_setup)();\
     minunit_status = 0;\
-    kprintf("\nRunning test: %s\n", #test);\
+    kprintf("\nRunning test: %s ", #test);\
     test();\
     minunit_run++;\
     if (minunit_status) {\
