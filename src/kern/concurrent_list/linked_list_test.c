@@ -443,15 +443,22 @@ TEST(interleaving_1) {
     yield_array[test_num][0] = 1;
 
     int *nums[2] = {
-            allocate_int(10),
-            allocate_int(20)
+            allocate_int(65), // 'A'
+            allocate_int(66) // 'B'
     };
 
     thread_fork("thread1", NULL, interleave_1_thread, nums[0], 0);
-    thread_fork("thread2", NULL, interleave_1_thread, nums[1], 0);
+    thread_fork("thread2", NULL, interleave_1_thread, nums[1], 1);
+    kprintf("\n\tAdded '%c' to list via Thread 1\n", *nums[0]);
+    kprintf("\tAdded '%c' to list via Thread 2\n", *nums[1]);
 
-    // TODO Wait for threads
-//    clear_ints(nums, 2);
+    // Wait for our threads to finish running
+    thread_wait_for_count(1);
+
+    kprintf("\tFinal list: ");
+    linked_list_printlist(list, 0);
+    kprintf("\tFinal list size: %d\n", list->length);
+    clear_ints(nums, 2);
 }
 
 

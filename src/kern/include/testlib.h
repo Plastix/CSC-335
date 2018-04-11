@@ -44,6 +44,10 @@ static void (*minunit_setup)(void) = NULL;
 
 static void (*minunit_teardown)(void) = NULL;
 
+// Test teardown / setup definitions
+void test_setup(void);
+void test_teardown(void);
+
 /*  Definitions */
 #define TEST(method_name) static void method_name(void)
 #define TEST_SUITE(suite_name) static void suite_name(void)

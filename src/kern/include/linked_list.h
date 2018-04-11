@@ -55,23 +55,10 @@ void linked_list_insert(Linked_List *list, int key, void *data);
  */
 void *linked_list_remove_head(Linked_List *list, int *key);
 
-//
-// TEST CODE
-//
-void yield_if_should(int location);
+// Test Methods
+void yield_if_should(int);
 
-void interleave_1_thread(void *args, unsigned long count);
-
-#define CONCURRENT_TEST_NUM 4
-#define CONCURRENT_LOCATION_NUM 10
-
-static int yield_array[CONCURRENT_TEST_NUM][CONCURRENT_LOCATION_NUM] = {
-        {0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
-        {0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
-        {0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
-        {0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
-};
-
-static unsigned long test_num = 0;
+extern int yield_array[4][10];
+extern long test_num;
 
 #endif
