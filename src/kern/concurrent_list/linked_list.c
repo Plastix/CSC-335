@@ -63,7 +63,7 @@ void linked_list_insert(Linked_List *list, int key, void *data) {
     Linked_List_Node *new = linked_list_create_node(key, data);
     Linked_List_Node *runner = list->first;
     if (runner == NULL) {
-        yield_if_should(0);
+        yield_on_test(1);
         list->first = new;
         list->last = new;
     } else {
@@ -74,9 +74,9 @@ void linked_list_insert(Linked_List *list, int key, void *data) {
 
         // Insert new node before runner
         if (runner != NULL) {
-            yield_if_should(0);
             Linked_List_Node *prev = runner->prev;
             new->next = runner;
+            yield_on_test(2);
             new->prev = prev;
             runner->prev = new;
 
@@ -134,17 +134,11 @@ void *linked_list_remove_head(Linked_List *list, int *key) {
     return data;
 }
 
-// Init Global Test Vars
-int yield_array[4][10] = {
-        {0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
-        {0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
-        {0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
-        {0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
-};
+// Init Global Test var
 long test_num = 0;
 
-void yield_if_should(int location) {
-    if (yield_array[test_num][location]) {
+void yield_on_test(int test) {
+    if (test_num == test) {
         thread_yield();
     }
 }

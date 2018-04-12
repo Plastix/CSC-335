@@ -56,9 +56,8 @@ void linked_list_insert(Linked_List *list, int key, void *data);
 void *linked_list_remove_head(Linked_List *list, int *key);
 
 // Test Methods
-void yield_if_should(int);
+void yield_on_test(int);
 
-extern int yield_array[4][10];
 extern long test_num;
 
 #endif
