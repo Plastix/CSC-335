@@ -1,0 +1,31 @@
+Interleaving 2 Test
+
+Running:
+    llt 2
+
+Test output:
+   OS/161 kernel [? for menu]: llt 2
+
+   Running test: interleaving_2
+   list: 0: 0[A]
+   list size: 1
+   Added 'B' to list via Thread 1
+   Removed head via Thread 2
+   list: 0: 0[B] panic: Fatal exception 4 (Address error on load) in kernel mode
+   panic: EPC 0x80003754, exception vaddr 0xdeadbeef
+   panic: I can't handle this... I think I'll just die now...
+   sys161: trace: software-requested debugger stop
+   sys161: Waiting for debugger connection.
+
+
+   1 tests, 0 assertions, 0 failures
+
+
+This test calls linked_list_insert from one thread and linked_list_remove_head from another thread on an non-empty
+list containing the element 'A'. Thread 1 begins to insert 'B' into the list with key=0. Thread 1 traverses the list
+and finds that the correct spot to insert 'B' is before node 'A'. After creating a new 'B' node, Thread 1 makes the new
+node->next point to 'A' and then yields to the other thread. Thread 2 runs linked_list_remove_head in its entirety
+without yielding. This mean that it removes the 'A' node and frees the memory of the node. After this thread exits,
+Thread 1 continues adding 'B' to the list which comes before the 'A' node which was just freed. This means that once
+Thread 1 exits, node 'A' is still in our list but is no longer a valid piece of memory. Therefore when the test code
+tries to print out the list the kernel panics because we are accessing a piece of memory that was freed.

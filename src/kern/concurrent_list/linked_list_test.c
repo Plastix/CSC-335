@@ -490,7 +490,7 @@ TEST(interleaving_1) {
 
     thread_fork("thread1", NULL, insert_key_thread, nums[0], 1);
     thread_fork("thread2", NULL, insert_key_thread, nums[1], 1);
-    kprintf("Added '%c' to list via Thread 1.\n", *nums[0]);
+    kprintf("Added '%c' to list via Thread 1\n", *nums[0]);
     kprintf("Added '%c' to list via Thread 2\n", *nums[1]);
 
     wait();
@@ -511,8 +511,8 @@ TEST(interleaving_2) {
 
     thread_fork("thread1", NULL, insert_key_thread, nums[1], 0);
     thread_fork("thread2", NULL, remove_head_thread, NULL, 0);
-    kprintf("Added '%c' to list via Thread 1...\n", *nums[1]);
-    kprintf("Removed head via Thread 2...\n");
+    kprintf("Added '%c' to list via Thread 1\n", *nums[1]);
+    kprintf("Removed head via Thread 2\n");
 
     wait();
     print_list_test(list);
@@ -529,8 +529,8 @@ TEST(interleaving_3){
 
     thread_fork("thread1", NULL, remove_head_thread, NULL, 0);
     thread_fork("thread2", NULL, remove_head_thread, NULL, 0);
-    kprintf("Removed head via Thread 1...\n");
-    kprintf("Removed head via Thread 2...\n");
+    kprintf("Removed head via Thread 1\n");
+    kprintf("Removed head via Thread 2\n");
 
     wait();
     print_list_test(list);
@@ -550,7 +550,7 @@ TEST(interleaving_4){
 
     thread_fork("thread1", NULL, insert_key_thread, nums[0], 1);
     thread_fork("thread2", NULL, insert_key_thread, nums[1], 1);
-    kprintf("Added '%c' to list via Thread 1.\n", *nums[0]);
+    kprintf("Added '%c' to list via Thread 1\n", *nums[0]);
     kprintf("Added '%c' to list via Thread 2\n", *nums[1]);
 
     wait();
