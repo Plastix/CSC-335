@@ -537,6 +537,26 @@ TEST(interleaving_3){
 
 }
 
+TEST(interleaving_4){
+    test_num = 4; // Set global test num
+
+    int *nums[2] = {
+            allocate_int(65), // 'A'
+            allocate_int(66), // 'B'
+    };
+
+    kprintf("\n");
+    print_list_test(list);
+
+    thread_fork("thread1", NULL, insert_key_thread, nums[0], 1);
+    thread_fork("thread2", NULL, insert_key_thread, nums[1], 1);
+    kprintf("Added '%c' to list via Thread 1.\n", *nums[0]);
+    kprintf("Added '%c' to list via Thread 2\n", *nums[1]);
+
+    wait();
+    print_list_test(list);
+}
+
 int linked_list_test_run(int nargs, char **args) {
     int testnum = 0;
     if (nargs == 2) {
@@ -557,6 +577,9 @@ int linked_list_test_run(int nargs, char **args) {
             break;
         case 3:
             RUN_TEST(interleaving_3);
+            break;
+        case 4:
+            RUN_TEST(interleaving_4);
             break;
         default:
             kprintf("Unknown test number %d!", testnum);

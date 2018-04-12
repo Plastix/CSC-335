@@ -25,6 +25,7 @@ Linked_List_Node *linked_list_create_node(int key, void *data) {
 void linked_list_prepend(Linked_List *list, void *data) {
     Linked_List_Node *newnode;
     Linked_List_Node *f = list->first;
+    yield_on_test(4);
 
     if (list->first == NULL) {
         newnode = linked_list_create_node(0, data);
