@@ -72,7 +72,9 @@ void linked_list_insert(Linked_List *list, int key, void *data) {
             runner = runner->next;
         }
 
+        // Insert new node before runner
         if (runner != NULL) {
+            yield_if_should(0);
             Linked_List_Node *prev = runner->prev;
             new->next = runner;
             new->prev = prev;
@@ -81,6 +83,7 @@ void linked_list_insert(Linked_List *list, int key, void *data) {
             if (prev != NULL) {
                 prev->next = new;
             }
+            // Insert new node at tail of list
         } else {
             Linked_List_Node *last = list->last;
             new->next = NULL;

@@ -4,23 +4,35 @@
 #include <testlib.h>
 #include <thread.h>
 
+// Function signatures
+int *allocate_int(int);
+
+void clear_ints(int *nums[], int);
+
+void print_list_test(Linked_List *list, const char *message);
+
+void insert_key_thread(void *, unsigned long);
+
+void remove_head_thread(void *, unsigned long);
+
 //
 // Helper Functions
 //
-int *allocate_int(int);
-
 int *allocate_int(int value) {
     int *pointer = kmalloc(sizeof(int));
     *pointer = value;
     return pointer;
 }
 
-void clear_ints(int *nums[], int);
-
 void clear_ints(int *nums[], int cont) {
     for (int i = 0; i < cont; i++) {
         kfree(nums[i]);
     }
+}
+
+void print_list_test(Linked_List *list, const char *message) {
+    kprintf(message);
+    linked_list_printlist(list, 0);
 }
 
 //
@@ -429,11 +441,20 @@ TEST_SUITE(linked_list_tests) {
 // Concurrent Tests
 // These are meant to show the linked list breaking with used from multiple threads.
 //
-void interleave_1_thread(void *args, unsigned long count) {
+void insert_key_thread(void *args, unsigned long count) {
     // Hacky fix to fix unused param warning
     count = count;
 
     linked_list_insert(list, 0, args);
+}
+
+void remove_head_thread(void *args, unsigned long count) {
+    // Hacky fix to fix unused param warning
+    count = count;
+    args = args;
+
+    int key = 0;
+    linked_list_remove_head(list, &key);
 }
 
 TEST(interleaving_1) {
@@ -447,16 +468,44 @@ TEST(interleaving_1) {
             allocate_int(66) // 'B'
     };
 
-    thread_fork("thread1", NULL, interleave_1_thread, nums[0], 0);
-    thread_fork("thread2", NULL, interleave_1_thread, nums[1], 1);
-    kprintf("\n\tAdded '%c' to list via Thread 1\n", *nums[0]);
+    print_list_test(list, "\n\tOriginal list: ");
+
+    thread_fork("thread1", NULL, insert_key_thread, nums[0], 0);
+    thread_fork("thread2", NULL, insert_key_thread, nums[1], 1);
+    kprintf("\tAdded '%c' to list via Thread 1\n", *nums[0]);
     kprintf("\tAdded '%c' to list via Thread 2\n", *nums[1]);
 
     // Wait for our threads to finish running
     thread_wait_for_count(1);
 
-    kprintf("\tFinal list: ");
-    linked_list_printlist(list, 0);
+    print_list_test(list, "\tFinal list: ");
+    kprintf("\tFinal list size: %d\n", list->length);
+    clear_ints(nums, 2);
+}
+
+TEST(interleaving_2) {
+    test_num = 1;
+
+    // Setup yield positions
+    yield_array[test_num][0] = 1;
+
+    int *nums[2] = {
+            allocate_int(65), // 'A'
+            allocate_int(66), // 'B'
+    };
+
+    linked_list_prepend(list, nums[0]); // key = 0
+    print_list_test(list, "\n\tOriginal list: ");
+
+    thread_fork("thread1", NULL, insert_key_thread, nums[1], 0);
+    thread_fork("thread2", NULL, remove_head_thread, NULL, 1);
+    kprintf("\tAdded '%c' to list via Thread 1\n", *nums[1]);
+    kprintf("\tRemoved head via Thread 2\n");
+
+    // Wait for our threads to finish running
+    thread_wait_for_count(1);
+
+    print_list_test(list, "\tFinal list: ");
     kprintf("\tFinal list size: %d\n", list->length);
     clear_ints(nums, 2);
 }
@@ -466,6 +515,7 @@ TEST_SUITE(concurrent_tests) {
     SUITE_CONFIGURE(&test_setup, &test_teardown);
 
     RUN_TEST(interleaving_1);
+    RUN_TEST(interleaving_2);
 }
 
 int linked_list_test_run(int nargs, char **args) {

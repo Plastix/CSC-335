@@ -130,7 +130,6 @@ void kmain(char *bootstring);
 #if OPT_CONCURRENT_LIST
 /* This is used in the Linked List assignment Project 1, if OPT_CONCURRENT_LIST is set */
 int linked_list_test_run(int, char **);
-void interleave_1_thread(void *, unsigned long);
 #endif
 
 /*
