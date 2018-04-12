@@ -525,22 +525,19 @@ int linked_list_test_run(int nargs, char **args) {
     }
 
     RESET_COUNTERS();
-    if (testnum == 0) {
-        RUN_SUITE(linked_list_tests);
-    } else {
-        SUITE_CONFIGURE(&test_setup, &test_teardown);
-
-        switch (testnum) {
-            case 1:
-                RUN_TEST(interleaving_1);
-                break;
-            case 2:
-                RUN_TEST(interleaving_2);
-                break;
-            default:
-                kprintf("Unknown test number %d!", testnum);
-        }
-
+    SUITE_CONFIGURE(&test_setup, &test_teardown);
+    switch (testnum) {
+        case 0:
+            RUN_SUITE(linked_list_tests);
+            break;
+        case 1:
+            RUN_TEST(interleaving_1);
+            break;
+        case 2:
+            RUN_TEST(interleaving_2);
+            break;
+        default:
+            kprintf("Unknown test number %d!", testnum);
     }
 
     TEST_REPORT();
