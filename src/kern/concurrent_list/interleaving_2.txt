@@ -17,9 +17,7 @@ Test output:
    sys161: trace: software-requested debugger stop
    sys161: Waiting for debugger connection.
 
-
    1 tests, 0 assertions, 0 failures
-
 
 This test calls linked_list_insert from one thread and linked_list_remove_head from another thread on an non-empty
 list containing the element 'A'. Thread 1 begins to insert 'B' into the list with key=0. Thread 1 traverses the list

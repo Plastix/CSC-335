@@ -16,6 +16,8 @@ void insert_key_thread(void *, unsigned long);
 
 void remove_head_thread(void *, unsigned long);
 
+void prepend_thread(void *, unsigned long);
+
 void wait(void);
 
 //
@@ -471,7 +473,17 @@ void remove_head_thread(void *args, unsigned long count) {
     linked_list_remove_head(list, &key);
 }
 
-void wait(){
+void prepend_thread(void *args, unsigned long count) {
+    // Hacky fix to fix unused param warning
+    count = count;
+
+    // Disable interrupts for this current thread
+    splhigh();
+
+    linked_list_prepend(list, args);
+}
+
+void wait() {
     for (int i = 0; i < 100; ++i) {
         thread_yield();
     }
@@ -518,10 +530,10 @@ TEST(interleaving_2) {
     print_list_test(list);
 }
 
-TEST(interleaving_3){
+TEST(interleaving_3) {
     test_num = 3; // Set global test num
 
-    int* num = allocate_int(65); // 'A'
+    int *num = allocate_int(65); // 'A'
     linked_list_prepend(list, num); // key = 0
 
     kprintf("\n");
@@ -537,7 +549,7 @@ TEST(interleaving_3){
 
 }
 
-TEST(interleaving_4){
+TEST(interleaving_4) {
     test_num = 4; // Set global test num
 
     int *nums[2] = {
@@ -548,8 +560,8 @@ TEST(interleaving_4){
     kprintf("\n");
     print_list_test(list);
 
-    thread_fork("thread1", NULL, insert_key_thread, nums[0], 1);
-    thread_fork("thread2", NULL, insert_key_thread, nums[1], 1);
+    thread_fork("thread1", NULL, prepend_thread, nums[0], 1);
+    thread_fork("thread2", NULL, prepend_thread, nums[1], 1);
     kprintf("Added '%c' to list via Thread 1\n", *nums[0]);
     kprintf("Added '%c' to list via Thread 2\n", *nums[1]);
 
@@ -557,6 +569,7 @@ TEST(interleaving_4){
     print_list_test(list);
 }
 
+// Test Entry point
 int linked_list_test_run(int nargs, char **args) {
     int testnum = 0;
     if (nargs == 2) {

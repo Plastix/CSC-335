@@ -1,0 +1,27 @@
+Interleaving 4 Test
+
+Running:
+    llt 4
+
+Test output:
+   OS/161 kernel [? for menu]: llt 4
+
+   Running test: interleaving_4
+   list: 0:
+   list size: 0
+   panic: Fatal exception 2 (TLB miss on load) in kernel mode
+   panic: EPC 0x8000380c, exception vaddr 0x8
+   panic: I can't handle this... I think I'll just die now...
+   sys161: trace: software-requested debugger stop
+   sys161: Waiting for debugger connection...
+
+This test calls linked_list_prepend from two threads on an empty list. Thread 1 yields to Thread 2 after getting a
+pointer to the current list->first which is NULL. Thread 2 does the same thing and gets a reference to list->first which
+is still NULL and yields. Thread 1 checks list->first and sees that it is NULL so it creates a new node with key 0 and
+sets the first and last pointers of the list. After incrementing the list length, Thread 1 exits. Thread 2 resumes and
+checks list->first. This time, first is not NULL since Thread 1 previously updated it. Thread 2 tries to create a new
+node whose key is minus 1 the value of the current list head. However, instead of checking list->first again, the method
+uses the original first NULL pointer obtained before yielding. Therefore, when Thread 2 does f->key-1, the kernel panics
+since it is attempting to dereference a NULL pointer.
+
+
