@@ -1,0 +1,78 @@
+CSC 335 Project 2
+Aidan Pieper
+
+1. In Project 1 you noticed that when you removed the splhigh() call from the linked_list_test_adder() function the
+console output of the threads interleaved to produce nonsensical output.  This is because kprintf is not currently
+thread safe.
+
+  A) Examine the code for kprintf. It uses two synchronization mechanisms for making its console output atomic --
+  what are they?
+
+    TODO
+
+  B) Why might the kernel use two different mechanisms to protect console output?
+
+    TODO
+
+  C) Which of the two synchronization mechanisms is the kernel using when the interleaved output is produced by running
+  your thread tests?
+
+    TODO
+
+  D) Explain why, despite this, the output is still interleaving.  (You are going to fix this later.)
+
+    TODO
+
+
+2. Identify two other subsystems of the kernel that use synchronization mechanisms.  For each of these subsystems:
+
+  A) Briefly describe the purpose of the subsystem.
+
+    TODO
+
+  B) Which synchronization mechanisms do they use?
+
+    TODO
+
+  C) For what purpose?
+
+    TODO
+
+  D) Are these subsystems afflicted by the same problem as kprintf?
+
+    TODO
+
+
+3. Locate the implementation of semaphores in src/kern/thread/synch.c.  Observe that they are implemented on top of wait
+channels and spinlocks.
+
+  A) Locate the definition of the struct semaphore.  In prose, explain the purpose of each of its attributes.  What
+  does volatile mean here?
+
+    TODO
+
+  B) In prose, explain the purpose of every line of the function sem_create().
+
+    TODO
+
+  C) In P, notice that the wait channel is locked before the spinlock is released.  Can this cause deadlock?  Explain
+  why or why not.
+
+    TODO
+
+4. Locate the implementation of wait channels in OS/161.  Examine all the functions in this implementation.
+
+  A) Why are spinlocks used in the function that checks whether a wait channel is empty?
+
+    TODO
+
+  B) Which function is responsible for putting threads to sleep?  This function make an assumption about the state of
+  the thread -- what is it?  This function also makes an important assumption about the state of the wait channel --
+  what is it?  (To determine this look at the places this function is called from and into the function it calls.)
+
+    TODO
+
+  C) Look at the implementation of spinlocks, wait channels and P() of semaphores.  During what portion of the code are
+  interrupts disabled?
+
+    TODO
