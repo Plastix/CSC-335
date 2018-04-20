@@ -57,30 +57,49 @@ channels and spinlocks.
   A) Locate the definition of the struct semaphore.  In prose, explain the purpose of each of its attributes.  What
   does volatile mean here?
 
-    TODO
+    Semaphore structs in OS/161 have 4 attributes. char* sem_name is a string field used for debugging. struct wchan *
+    sem_wchan is wait channel data structure. It contains a name and a linked list of waiting threads and is used to
+    store threads that are waiting to "acquire" the semaphore once another thread signals it. struct spinlock sem_lock
+    is a spinlock which is used to make sure that the wait (P) and signal (V) operations are atomic. volatile unsigned
+    sem_count maintains the internal count of the semaphore. The keyword "volatile" tells the compiler that it shouldn't
+    optimize any code using this variable since the variable will change its value.
 
   B) In prose, explain the purpose of every line of the function sem_create().
 
-    TODO
+    Line 50 creates a new local pointer variable to a semaphore struct. Line 52 calls kmalloc to allocate space on the
+    heap for a semaphore struct. The if statement on Lines 53-55 check whether the kmalloc failed to allocate the
+    desired memory and returns a NULL pointer in this case. Line 57 copies the passed in string parameter to the
+    internal string field in semaphore. The if statement on Lines 58-61 check to see if this string copy failed. If so,
+    the allocated semaphore memory is freed and a NULL pointer is returned. Line 63 creates and allocates memory for a
+    new wait channel and sets the internal semaphore wait channel object. The if statement on Lines 64-68 checks to see
+    if the wait channel creation failed. If so, the copied semaphore string and the semaphore struct are freed and a
+    NULL pointer is returned. Line 70 initializes the internal semaphore spinlock. Line 71 sets the internal semaphore
+    counter to the specified initialization value. Line 73 returns a pointer to the successfully created semaphore
+    struct.
 
   C) In P, notice that the wait channel is locked before the spinlock is released.  Can this cause deadlock?  Explain
   why or why not.
 
-    TODO
+    TODO ASK MATT ABOUT THIS
+    No, because wchan_sleep() expects a locked spinlock. When the wake channel calls thread_switch(), this unlocks the
+    spinlock and wchan_sleep() re-locks it before returning to P().
 
 4. Locate the implementation of wait channels in OS/161.  Examine all the functions in this implementation.
 
   A) Why are spinlocks used in the function that checks whether a wait channel is empty?
 
-    TODO
+    wchan_isempty() needs to be atomic. We don't want it interleaving with other code which is modifying the wait
+    channel and therefore read some broken state.
 
   B) Which function is responsible for putting threads to sleep?  This function make an assumption about the state of
   the thread -- what is it?  This function also makes an important assumption about the state of the wait channel --
   what is it?  (To determine this look at the places this function is called from and into the function it calls.)
 
-    TODO
+    wchan_sleep() puts threads to sleep. This function assumes that the thread is not inside of an interrupt. It also
+    assumes that the spinlock associated with the wait channel is locked and that the current CPU holds control of the
+    lock.
 
   C) Look at the implementation of spinlocks, wait channels and P() of semaphores.  During what portion of the code are
   interrupts disabled?
 
-    TODO
+    Interrupts are disabled when a spinlock is acquired and when switching between threads.
