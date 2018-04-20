@@ -7,6 +7,7 @@ include_directories(src/kern/include)
 include_directories(src/userland/include)
 include_directories(src/kern/arch/mips/include)
 include_directories(src/kern/arch/sys161/include)
+include_directories(src/kern/dev)
 include_directories(src/kern/compile/PROJ2/includelinks)
 include_directories(root/include)
 

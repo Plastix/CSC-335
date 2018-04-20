@@ -8,39 +8,47 @@ thread safe.
   A) Examine the code for kprintf. It uses two synchronization mechanisms for making its console output atomic --
   what are they?
 
-    TODO
+    kprintf uses both normal mutual exclusion locks and spinlocks.
 
   B) Why might the kernel use two different mechanisms to protect console output?
 
-    TODO
+    One of the mechanisms is used while the OS is in the process of setting up parts required for more complicated
+    subsystems. For example, kprintf uses spinlocks before the OS can call printf_boostrap which sets up the normal
+    mutex lock.
 
   C) Which of the two synchronization mechanisms is the kernel using when the interleaved output is produced by running
   your thread tests?
 
-    TODO
+    The kernel is using the normal mutual exclusion locks.
 
   D) Explain why, despite this, the output is still interleaving.  (You are going to fix this later.)
 
-    TODO
+    Normal mutual exclusion locks (struct lock) are not implemented yet in OS/161. Although kprintf is calling
+    lock_acquire() and lock_release(), they are currently NOP methods so no syncronization is happening and interleaving
+    still occurs.
 
 
 2. Identify two other subsystems of the kernel that use synchronization mechanisms.  For each of these subsystems:
 
   A) Briefly describe the purpose of the subsystem.
 
-    TODO
+    1. emu.c: This provides a unified filesystem interface for the emulator hardware running on sys161.
+    2. console.c: This provides an interface for I/O operations for a generic device.
 
   B) Which synchronization mechanisms do they use?
 
-    TODO
+    1. emu.c uses both mutex locks and semaphores.
+    2. console.c uses mutex locks.
 
   C) For what purpose?
 
-    TODO
+    1. emu.c uses semaphores for managing interrupts and mutex locks for controlling reads and writes to the filesystem.
+    2. console.c uses mutex locks for controlling reading and writing.
 
   D) Are these subsystems afflicted by the same problem as kprintf?
 
-    TODO
+    1. Yes, since emu.c uses mutex locks which are not implemented yet.
+    2. Yes, since console.c mutex locks which are not implemented yet.
 
 
 3. Locate the implementation of semaphores in src/kern/thread/synch.c.  Observe that they are implemented on top of wait
