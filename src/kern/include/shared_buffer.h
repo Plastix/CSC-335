@@ -8,7 +8,7 @@ typedef struct {
     volatile int in;
     volatile int out;
     volatile int count;
-    const int size;
+    int size;
     struct lock *lock;
 } Shared_Buffer;
 
@@ -38,4 +38,3 @@ void shared_buffer_produce(Shared_Buffer *buffer, char input);
  * @return The removed character.
  */
 char shared_buffer_consume(Shared_Buffer *buffer);
-

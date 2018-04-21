@@ -27,7 +27,7 @@ static void test_setup(void) {
 }
 
 static void test_teardown(void) {
-    kfree(buffer);
+    shared_buffer_destroy(buffer);
     sem_destroy(tsem);
 }
 
@@ -44,10 +44,58 @@ TEST(new_shared_buffer) {
     ASSERT_INT_EQ(0, buffer->count);
 }
 
+TEST(add_char_to_empty_buffer) {
+    ASSERT_NOT_NULL(buffer);
+    shared_buffer_produce(buffer, 'A');
+    ASSERT_INT_EQ(1, buffer->count);
+}
+
+TEST(add_two_char_to_empty_buffer) {
+    ASSERT_NOT_NULL(buffer);
+    shared_buffer_produce(buffer, 'A');
+    shared_buffer_produce(buffer, 'B');
+    ASSERT_INT_EQ(2, buffer->count);
+}
+
+TEST(remove_char_from_nonempty_buffer) {
+    ASSERT_NOT_NULL(buffer);
+    char input = 'A';
+    shared_buffer_produce(buffer, input);
+    char output = shared_buffer_consume(buffer);
+    ASSERT(input == output, "Consumed character not produced character!");
+    ASSERT_INT_EQ(0, buffer->count);
+}
+
+TEST(remove_two_char_from_nonempty_buffer) {
+    ASSERT_NOT_NULL(buffer);
+    char inputs[2] = {
+            'A',
+            'B'
+    };
+    shared_buffer_produce(buffer, inputs[0]);
+    shared_buffer_produce(buffer, inputs[1]);
+
+    char outputs[2] = {
+            '0',
+            '0'
+    };
+
+    outputs[0] = shared_buffer_consume(buffer);
+    outputs[1] = shared_buffer_consume(buffer);
+
+    ASSERT(inputs[0] == outputs[0], "Consumed character not produced character!");
+    ASSERT(inputs[1] == outputs[1], "Consumed character not produced character!");
+    ASSERT_INT_EQ(0, buffer->count);
+}
+
 TEST_SUITE(sequential_shared_buffer) {
     SUITE_CONFIGURE(&test_setup, &test_teardown);
 
     RUN_TEST(new_shared_buffer);
+    RUN_TEST(add_char_to_empty_buffer);
+    RUN_TEST(add_two_char_to_empty_buffer);
+    RUN_TEST(remove_char_from_nonempty_buffer);
+    RUN_TEST(remove_two_char_from_nonempty_buffer);
 }
 
 TEST_SUITE(concurrent_shared_buffer) {
