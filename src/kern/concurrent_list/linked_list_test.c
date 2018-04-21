@@ -18,7 +18,7 @@ void remove_head_thread(void *, unsigned long);
 
 void prepend_thread(void *, unsigned long);
 
-void wait(int);
+static void wait(int);
 
 //
 // Helper Functions
@@ -51,7 +51,7 @@ void print_list_test(Linked_List *list) {
 static Linked_List *list;
 static struct semaphore *tsem = NULL;
 
-void test_setup(void) {
+static void test_setup(void) {
     list = linked_list_create();
 
     tsem = sem_create("Test semaphore", 0);
@@ -60,7 +60,7 @@ void test_setup(void) {
     }
 }
 
-void test_teardown(void) {
+static void test_teardown(void) {
     kfree(list);
     sem_destroy(tsem);
 }
@@ -484,7 +484,7 @@ void prepend_thread(void *args, unsigned long count) {
     V(tsem);
 }
 
-void wait(int thread_num) {
+static void wait(int thread_num) {
     for (int i = 0; i < thread_num; i++) {
         P(tsem);
     }

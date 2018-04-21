@@ -7,7 +7,8 @@ typedef struct {
     char *buffer; // Array of characters
     volatile int in;
     volatile int out;
-    volatile int size;
+    volatile int count;
+    const int size;
     struct lock *lock;
 } Shared_Buffer;
 
