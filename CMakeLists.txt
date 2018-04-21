@@ -552,4 +552,7 @@ add_executable(os161_piepera_proj1
         src/userland/testbin/usemtest/usemtest.c
         src/userland/testbin/userthreads/userthreads.c
         src/userland/testbin/waiter/waiter.c
-        src/userland/testbin/zero/zero.c)
+        src/userland/testbin/zero/zero.c
+        src/kern/include/shared_buffer.h
+        src/kern/shared_buffer/shared_buffer.c
+        src/kern/shared_buffer/shared_buffer_test.c)

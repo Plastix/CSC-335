@@ -588,7 +588,7 @@ static const char *testmenu[] = {
 	"[tt3] Thread test 3                 ",
 #if OPT_CONCURRENT_LIST
 	"[llt] Linked List Tests             ",
-#endif	
+#endif
 #if OPT_NET
 	"[net] Network test                  ",
 #endif
@@ -616,6 +616,7 @@ static const char *testmenu[] = {
 	"[fs5] FS long stress                ",
 	"[fs6] FS create stress              ",
 	"[hm1] HMAC unit test                ",
+	"[sbt] Shared Buffer Tests           ",
 	NULL
 };
 
@@ -760,7 +761,7 @@ static struct {
 #if OPT_CONCURRENT_LIST
 	{ "llt", linked_list_test_run },
 #endif
-	
+
 	/* semaphore unit tests */
 	{ "semu1",	semu1 },
 	{ "semu2",	semu2 },
@@ -795,6 +796,7 @@ static struct {
 
 	/* HMAC unit tests */
 	{ "hm1",	hmacu1 },
+    { "sbt", shared_buffer_test_run},
 
 #if OPT_AUTOMATIONTEST
 	/* automation tests */

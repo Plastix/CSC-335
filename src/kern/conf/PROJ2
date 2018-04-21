@@ -34,3 +34,13 @@ options sfs			# Always use the file system
 options dumbvm			# Chewing gum and baling wire.
 
 options concurrent_list
+
+
+######################################
+#                                    #
+#  Shared Buffer files               #
+#                                    #
+######################################
+
+file  shared_buffer/shared_buffer.c
+file  shared_buffer/shared_buffer_test.c
