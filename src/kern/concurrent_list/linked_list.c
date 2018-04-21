@@ -133,6 +133,7 @@ void *linked_list_remove_head(Linked_List *list, int *key) {
 
     Linked_List_Node *removed = list->first;
     if (removed == NULL) {
+        lock_release(list->lock);
         return NULL;
     }
 
