@@ -1,12 +1,19 @@
 #include <linked_list.h>
 #include <lib.h>
 #include <thread.h>
+#include <synch.h>
 
 Linked_List *linked_list_create(void) {
     Linked_List *ptr = kmalloc(sizeof(Linked_List));
     ptr->length = 0;
     ptr->first = NULL;
     ptr->last = NULL;
+
+    ptr->lock = lock_create("Linked List Lock");
+    if (ptr->lock == NULL) {
+        kfree(ptr);
+        return NULL;
+    }
 
     return ptr;
 }
@@ -24,6 +31,8 @@ Linked_List_Node *linked_list_create_node(int key, void *data) {
 
 void linked_list_prepend(Linked_List *list, void *data) {
     Linked_List_Node *newnode;
+
+    lock_acquire(list->lock);
     Linked_List_Node *f = list->first;
     yield_on_test(4);
 
@@ -40,9 +49,13 @@ void linked_list_prepend(Linked_List *list, void *data) {
     }
 
     list->length++;
+
+    lock_release(list->lock);
 }
 
 void linked_list_printlist(Linked_List *list, int which) {
+    lock_acquire(list->lock);
+
     Linked_List_Node *runner = list->first;
 
     kprintf("%d: ", which);
@@ -53,6 +66,8 @@ void linked_list_printlist(Linked_List *list, int which) {
     }
 
     kprintf("\n");
+
+    lock_release(list->lock);
 }
 
 void linked_list_insert(Linked_List *list, int key, void *data) {
@@ -60,6 +75,8 @@ void linked_list_insert(Linked_List *list, int key, void *data) {
     if (list == NULL) {
         return;
     }
+
+    lock_acquire(list->lock);
 
     Linked_List_Node *new = linked_list_create_node(key, data);
     Linked_List_Node *runner = list->first;
@@ -102,6 +119,8 @@ void linked_list_insert(Linked_List *list, int key, void *data) {
     }
 
     list->length++;
+
+    lock_release(list->lock);
 }
 
 void *linked_list_remove_head(Linked_List *list, int *key) {
@@ -109,6 +128,8 @@ void *linked_list_remove_head(Linked_List *list, int *key) {
     if (list == NULL) {
         return NULL;
     }
+
+    lock_acquire(list->lock);
 
     Linked_List_Node *removed = list->first;
     if (removed == NULL) {
@@ -131,6 +152,9 @@ void *linked_list_remove_head(Linked_List *list, int *key) {
     }
 
     list->length--;
+
+    lock_release(list->lock);
+
     kfree(removed);
 
     return data;

@@ -3,7 +3,7 @@
 #include <test.h>
 #include <testlib.h>
 #include <thread.h>
-#include <spl.h>
+#include <synch.h>
 
 // Function signatures
 int *allocate_int(int);
@@ -18,7 +18,7 @@ void remove_head_thread(void *, unsigned long);
 
 void prepend_thread(void *, unsigned long);
 
-void wait(void);
+void wait(int);
 
 //
 // Helper Functions
@@ -49,13 +49,20 @@ void print_list_test(Linked_List *list) {
 // Test Util Functions
 //
 static Linked_List *list;
+static struct semaphore *tsem = NULL;
 
 void test_setup(void) {
     list = linked_list_create();
+
+    tsem = sem_create("Test semaphore", 0);
+    if (tsem == NULL) {
+        panic("linked list test: failed to create semaphore!");
+    }
 }
 
 void test_teardown(void) {
     kfree(list);
+    sem_destroy(tsem);
 }
 
 //
@@ -455,10 +462,8 @@ void insert_key_thread(void *args, unsigned long count) {
     // Hacky fix to fix unused param warning
     count = count;
 
-    // Disable interrupts for this current thread
-    splhigh();
-
     linked_list_insert(list, 0, args);
+    V(tsem);
 }
 
 void remove_head_thread(void *args, unsigned long count) {
@@ -466,26 +471,22 @@ void remove_head_thread(void *args, unsigned long count) {
     count = count;
     args = args;
 
-    // Disable interrupts for this current thread
-    splhigh();
-
     int key = 0;
     linked_list_remove_head(list, &key);
+    V(tsem);
 }
 
 void prepend_thread(void *args, unsigned long count) {
     // Hacky fix to fix unused param warning
     count = count;
 
-    // Disable interrupts for this current thread
-    splhigh();
-
     linked_list_prepend(list, args);
+    V(tsem);
 }
 
-void wait() {
-    for (int i = 0; i < 100; ++i) {
-        thread_yield();
+void wait(int thread_num) {
+    for (int i = 0; i < thread_num; i++) {
+        P(tsem);
     }
 }
 
@@ -502,11 +503,12 @@ TEST(interleaving_1) {
 
     thread_fork("thread1", NULL, insert_key_thread, nums[0], 1);
     thread_fork("thread2", NULL, insert_key_thread, nums[1], 1);
-    kprintf("Added '%c' to list via Thread 1\n", *nums[0]);
-    kprintf("Added '%c' to list via Thread 2\n", *nums[1]);
 
-    wait();
+    wait(2);
+    kprintf("Inserted '%c' into list with key 0 via Thread 1\n", *nums[0]);
+    kprintf("Inserted '%c' into list with key 0 via Thread 2\n", *nums[1]);
     print_list_test(list);
+    clear_ints(nums, 2);
 }
 
 TEST(interleaving_2) {
@@ -523,11 +525,12 @@ TEST(interleaving_2) {
 
     thread_fork("thread1", NULL, insert_key_thread, nums[1], 0);
     thread_fork("thread2", NULL, remove_head_thread, NULL, 0);
-    kprintf("Added '%c' to list via Thread 1\n", *nums[1]);
-    kprintf("Removed head via Thread 2\n");
 
-    wait();
+    wait(2);
+    kprintf("Inserted '%c' into list with key 0 via Thread 1\n", *nums[1]);
+    kprintf("Removed head via Thread 2\n");
     print_list_test(list);
+    clear_ints(nums, 2);
 }
 
 TEST(interleaving_3) {
@@ -541,12 +544,12 @@ TEST(interleaving_3) {
 
     thread_fork("thread1", NULL, remove_head_thread, NULL, 0);
     thread_fork("thread2", NULL, remove_head_thread, NULL, 0);
+
+    wait(2);
     kprintf("Removed head via Thread 1\n");
     kprintf("Removed head via Thread 2\n");
-
-    wait();
     print_list_test(list);
-
+    kfree(num);
 }
 
 TEST(interleaving_4) {
@@ -562,11 +565,12 @@ TEST(interleaving_4) {
 
     thread_fork("thread1", NULL, prepend_thread, nums[0], 1);
     thread_fork("thread2", NULL, prepend_thread, nums[1], 1);
-    kprintf("Added '%c' to list via Thread 1\n", *nums[0]);
-    kprintf("Added '%c' to list via Thread 2\n", *nums[1]);
 
-    wait();
+    wait(2);
+    kprintf("Prepended '%c' to list via Thread 1\n", *nums[0]);
+    kprintf("Prepended '%c' to list via Thread 2\n", *nums[1]);
     print_list_test(list);
+    clear_ints(nums, 2);
 }
 
 // Test Entry point
