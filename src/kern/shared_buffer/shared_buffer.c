@@ -17,8 +17,25 @@ Shared_Buffer *shared_buffer_create(int size) {
 
     buffer->lock = lock_create("shared buffer lock");
     if (buffer->lock == NULL) {
-        kfree(buffer);
         kfree(buffer->buffer);
+        kfree(buffer);
+        return NULL;
+    }
+
+    buffer->cv_producer = cv_create("shared buffer producer cv");
+    if (buffer->cv_producer == NULL) {
+        kfree(buffer->buffer);
+        kfree(buffer->lock);
+        kfree(buffer);
+        return NULL;
+    }
+
+    buffer->cv_consumer = cv_create("shared buffer consumer cv");
+    if (buffer->cv_consumer == NULL) {
+        kfree(buffer->buffer);
+        kfree(buffer->lock);
+        kfree(buffer->cv_producer);
+        kfree(buffer);
         return NULL;
     }
 
@@ -41,13 +58,15 @@ void shared_buffer_destroy(Shared_Buffer *buffer) {
 void shared_buffer_produce(Shared_Buffer *buffer, char input) {
     lock_acquire(buffer->lock);
 
-    while (buffer->size == buffer->count);
-    // TODO don't spinwait
+    while (buffer->size == buffer->count) {
+        cv_wait(buffer->cv_producer, buffer->lock);
+    }
 
     buffer->buffer[buffer->in] = input;
     buffer->in = (buffer->in + 1) % buffer->size;
     buffer->count++;
 
+    cv_signal(buffer->cv_consumer, buffer->lock);
     lock_release(buffer->lock);
 }
 
@@ -55,13 +74,15 @@ void shared_buffer_produce(Shared_Buffer *buffer, char input) {
 char shared_buffer_consume(Shared_Buffer *buffer) {
     lock_acquire(buffer->lock);
 
-    while (buffer->count == 0);
-    // TODO don't spinwait
+    while (buffer->count == 0) {
+        cv_wait(buffer->cv_consumer, buffer->lock);
+    }
 
     char result = buffer->buffer[buffer->out];
     buffer->out = (buffer->out + 1) % buffer->size;
     buffer->count--;
 
+    cv_signal(buffer->cv_producer, buffer->lock);
     lock_release(buffer->lock);
 
     return result;

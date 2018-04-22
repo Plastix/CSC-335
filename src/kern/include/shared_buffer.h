@@ -10,6 +10,8 @@ typedef struct {
     volatile int count;
     int size;
     struct lock *lock;
+    struct cv *cv_producer;
+    struct cv *cv_consumer;
 } Shared_Buffer;
 
 /**
