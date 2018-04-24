@@ -234,6 +234,10 @@ bool lock_do_i_hold(struct lock *lock) {
 
 
 struct cv *cv_create(const char *name) {
+    if(name == NULL){
+        return NULL;
+    }
+
     struct cv *cv;
 
     cv = kmalloc(sizeof(*cv));

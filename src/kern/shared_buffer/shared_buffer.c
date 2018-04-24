@@ -49,6 +49,8 @@ Shared_Buffer *shared_buffer_create(int size) {
 
 
 void shared_buffer_destroy(Shared_Buffer *buffer) {
+    KASSERT(buffer != NULL);
+
     kfree(buffer->buffer);
     lock_destroy(buffer->lock);
     kfree(buffer);
@@ -56,6 +58,8 @@ void shared_buffer_destroy(Shared_Buffer *buffer) {
 
 
 void shared_buffer_produce(Shared_Buffer *buffer, char input) {
+    KASSERT(buffer != NULL);
+
     lock_acquire(buffer->lock);
 
     while (buffer->size == buffer->count) {
@@ -72,6 +76,8 @@ void shared_buffer_produce(Shared_Buffer *buffer, char input) {
 
 
 char shared_buffer_consume(Shared_Buffer *buffer) {
+    KASSERT(buffer != NULL);
+
     lock_acquire(buffer->lock);
 
     while (buffer->count == 0) {
