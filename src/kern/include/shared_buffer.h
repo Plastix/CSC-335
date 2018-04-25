@@ -23,20 +23,20 @@ Shared_Buffer *shared_buffer_create(int size);
 
 /**
  * Destroys the specified shared buffer and frees all allocated memory.
- * @param buffer Pointer to shared buffer to destroy.
+ * @param buffer Pointer to shared buffer to destroy. This pointer is assumed to be not NULL.
  */
 void shared_buffer_destroy(Shared_Buffer *buffer);
 
 /**
  * Adds {@param input} to the specified shared buffer.
- * @param buffer Buffer to add item to.
+ * @param buffer Buffer to add item to. This pointer is assumed to be not NULL.
  * @param input Character to add.
  */
 void shared_buffer_produce(Shared_Buffer *buffer, char input);
 
 /**
  * Consumes an item from the specified shared buffer.
- * @param buffer Buffer to retrieve item from.
+ * @param buffer Buffer to retrieve item from. This pointer is assumed to be not NULL.
  * @return The removed character.
  */
 char shared_buffer_consume(Shared_Buffer *buffer);
