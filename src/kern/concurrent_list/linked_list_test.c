@@ -422,6 +422,18 @@ TEST(remove_nonempty2) {
     clear_ints(nums, 3);
 }
 
+TEST(remove_with_null_key) {
+    int *num = allocate_int(5);
+    linked_list_prepend(list, num); // key = 0
+    int *removed = linked_list_remove_head(list, NULL);
+    ASSERT_NOT_NULL(removed);
+    ASSERT_NULL(list->first);
+    ASSERT_NULL(list->last);
+    ASSERT_INT_EQ(0, list->length);
+
+    kfree(num);
+}
+
 TEST_SUITE(linked_list_tests) {
     SUITE_CONFIGURE(&test_setup, &test_teardown);
 
@@ -451,6 +463,7 @@ TEST_SUITE(linked_list_tests) {
     RUN_TEST(remove_singleton);
     RUN_TEST(remove_nonempty);
     RUN_TEST(remove_nonempty2);
+    RUN_TEST(remove_with_null_key);
 }
 
 

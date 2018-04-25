@@ -140,7 +140,9 @@ void *linked_list_remove_head(Linked_List *list, int *key) {
     Linked_List_Node *new_head = removed->next;
     yield_on_test(3);
     void *data = removed->data;
-    *key = removed->key;
+    if (key != NULL) {
+        *key = removed->key;
+    }
 
     list->first = new_head;
 
