@@ -8,13 +8,14 @@ thread safe.
   A) Examine the code for kprintf. It uses two synchronization mechanisms for making its console output atomic --
   what are they?
 
-    kprintf uses both normal mutual exclusion locks and spinlocks.
+    kprintf() uses both normal mutual exclusion locks and spinlocks.
 
   B) Why might the kernel use two different mechanisms to protect console output?
 
-    One of the mechanisms is used while the OS is in the process of setting up parts required for more complicated
-    subsystems. For example, kprintf uses spinlocks before the OS can call printf_boostrap which sets up the normal
-    mutex lock.
+    Spinlocks are used while the OS is in the process of setting up subsystems required for more complicated
+    synchronization mechanisms. For example, kprintf() uses spinlocks before the OS can call printf_boostrap() which
+    sets up the normal mutex lock. This is because the OS hasn't initialized things like RAM which are needed for
+    the internals of mutex lock to function.
 
   C) Which of the two synchronization mechanisms is the kernel using when the interleaved output is produced by running
   your thread tests?
@@ -23,9 +24,9 @@ thread safe.
 
   D) Explain why, despite this, the output is still interleaving.  (You are going to fix this later.)
 
-    Normal mutual exclusion locks (struct lock) are not implemented yet in OS/161. Although kprintf is calling
-    lock_acquire() and lock_release(), they are currently NOP methods so no syncronization is happening and interleaving
-    still occurs.
+    Normal mutual exclusion locks (struct lock) are not implemented yet in OS/161. Although kprintf() is calling
+    lock_acquire() and lock_release(), they are currently NOP methods so no synchronization is happening and
+    interleaving still occurs.
 
 
 2. Identify two other subsystems of the kernel that use synchronization mechanisms.  For each of these subsystems:
@@ -43,7 +44,7 @@ thread safe.
   C) For what purpose?
 
     1. emu.c uses semaphores for managing interrupts and mutex locks for controlling reads and writes to the filesystem.
-    2. console.c uses mutex locks for controlling reading and writing.
+    2. console.c uses mutex locks for controlling reading and writing to the device.
 
   D) Are these subsystems afflicted by the same problem as kprintf?
 
@@ -58,7 +59,7 @@ channels and spinlocks.
   does volatile mean here?
 
     Semaphore structs in OS/161 have 4 attributes. char* sem_name is a string field used for debugging. struct wchan *
-    sem_wchan is wait channel data structure. It contains a name and a linked list of waiting threads and is used to
+    sem_wchan is wait channel data structure; It contains a name and a linked list of waiting threads and is used to
     store threads that are waiting to "acquire" the semaphore once another thread signals it. struct spinlock sem_lock
     is a spinlock which is used to make sure that the wait (P) and signal (V) operations are atomic. volatile unsigned
     sem_count maintains the internal count of the semaphore. The keyword "volatile" tells the compiler that it shouldn't
@@ -80,7 +81,6 @@ channels and spinlocks.
   C) In P, notice that the wait channel is locked before the spinlock is released.  Can this cause deadlock?  Explain
   why or why not.
 
-    TODO ASK MATT ABOUT THIS
     No, because wchan_sleep() expects a locked spinlock. When the wake channel calls thread_switch(), this unlocks the
     spinlock and wchan_sleep() re-locks it before returning to P().
 
