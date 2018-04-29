@@ -153,6 +153,7 @@ struct lock *lock_create(const char *name) {
 
     lock->lk_wchan = wchan_create(name);
     if (lock->lk_wchan == NULL) {
+        kfree(lock->lk_name);
         kfree(lock);
         return NULL;
     }
@@ -200,9 +201,11 @@ void lock_acquire(struct lock *lock) {
 
 void lock_release(struct lock *lock) {
     KASSERT(lock != NULL);
-    KASSERT(lock_do_i_hold(lock));
 
     spinlock_acquire(&lock->lk_spinlock);
+
+    // Assert that we are the holding thread the lock before releasing
+    KASSERT(lock->lk_holder == curthread);
 
     lock->available = true;
     lock->lk_holder = NULL;
