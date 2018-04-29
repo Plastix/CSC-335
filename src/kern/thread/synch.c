@@ -185,12 +185,12 @@ void lock_acquire(struct lock *lock) {
     while (!lock->available) {
         // Sleep the current thread
         wchan_sleep(lock->lk_wchan, &lock->lk_spinlock);
+        // Use a while loop because we need to make sure the lock is available after waking up
     }
 
     // Grab the lock
-    // We may be waking up from sleeping
     lock->available = false;
-    lock->lk_holder = curcpu->c_curthread;
+    lock->lk_holder = curthread;
 
     /* Call this (atomically) once the lock is acquired */
     HANGMAN_ACQUIRE(&curthread->t_hangman, &lock->lk_hangman);
@@ -200,11 +200,9 @@ void lock_acquire(struct lock *lock) {
 
 void lock_release(struct lock *lock) {
     KASSERT(lock != NULL);
+    KASSERT(lock_do_i_hold(lock));
 
     spinlock_acquire(&lock->lk_spinlock);
-
-    KASSERT(!lock->available);
-    KASSERT(lock->lk_holder == curcpu->c_curthread);
 
     lock->available = true;
     lock->lk_holder = NULL;
@@ -221,11 +219,11 @@ void lock_release(struct lock *lock) {
 bool lock_do_i_hold(struct lock *lock) {
     KASSERT(lock != NULL);
 
-    if (lock->available) {
-        return false;
-    }
+    spinlock_acquire(&lock->lk_spinlock);
+    struct thread *holder = lock->lk_holder;
+    spinlock_release(&lock->lk_spinlock);
 
-    return lock->lk_holder == curcpu->c_curthread;
+    return holder == curthread;
 }
 
 ////////////////////////////////////////////////////////////
@@ -234,7 +232,7 @@ bool lock_do_i_hold(struct lock *lock) {
 
 
 struct cv *cv_create(const char *name) {
-    if(name == NULL){
+    if (name == NULL) {
         return NULL;
     }
 
@@ -254,6 +252,8 @@ struct cv *cv_create(const char *name) {
     cv->cv_wchan = wchan_create(name);
     if (cv->cv_wchan == NULL) {
         kfree(cv->cv_wchan);
+        kfree(cv->cv_name);
+        kfree(cv);
         return NULL;
     }
 
@@ -303,5 +303,4 @@ void cv_broadcast(struct cv *cv, struct lock *lock) {
     spinlock_acquire(&cv->cv_spinlock);
     wchan_wakeall(cv->cv_wchan, &cv->cv_spinlock);
     spinlock_release(&cv->cv_spinlock);
-
 }
