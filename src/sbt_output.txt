@@ -1,0 +1,65 @@
+Script started on Tue 01 May 2018 01:42:02 AM UTC
+]0;trinity@zion: ~/shared/os161-piepera-proj1trinity@zion:~/shared/os161-piepera-proj1$ ls[K[K.[K./boot.sh 
+sys161: bind: Operation not permitted
+sys161: Could not set up meter socket; metering disabled
+sys161: System/161 release 2.0.8, compiled Jan  9 2017 17:17:19
+
+OS/161 base system version 2.0.3
+Copyright (c) 2000, 2001-2005, 2008-2011, 2013, 2014
+   President and Fellows of Harvard College.  All rights reserved.
+
+Put-your-group-name-here's system version 0 (PROJ2 #81)
+
+808k physical memory available
+Device probe...
+lamebus0 (system main bus)
+emu0 at lamebus0
+ltrace0 at lamebus0
+ltimer0 at lamebus0
+beep0 at ltimer0
+rtclock0 at ltimer0
+lrandom0 at lamebus0
+random0 at lrandom0
+lhd0 at lamebus0
+lhd1 at lamebus0
+lser0 at lamebus0
+con0 at lser0
+
+cpu0: MIPS/161 (System/161 2.x) features 0x0
+1 CPU online
+OS/161 kernel [? for menu]: sbt
+
+
+########################################
+Test Suite: sequential_shared_buffer
+########################################
+
+Running test: new_shared_buffer ...
+Running test: add_char_to_empty_buffer ..
+Running test: add_two_char_to_empty_buffer ..
+Running test: remove_char_from_nonempty_buffer ...
+Running test: remove_two_char_from_nonempty_buffer ....
+
+########################################
+Test Suite: concurrent_shared_buffer
+########################################
+
+Running test: double_concurrent_produce_not_full ....
+Running test: double_concurrent_consume_not_empty ......
+Running test: consume_empty_buffer .....
+Running test: produce_full_buffer ......
+
+9 tests, 35 assertions, 0 failures
+Operation took 1.359848800 seconds
+OS/161 kernel [? for menu]: q q
+Shutting down.
+The system is halted.
+sys161: 311846300 cycles (64841048 run, 247005252 global-idle)
+sys161:   cpu0: 4951927 kern, 0 user, 0 idle; 15913 ll, 15913/0 sc, 58937 sync
+sys161: 1388 irqs 0 exns 0r/0w disk 8r/1387w console 0r/0w/1m emufs 0r/0w net
+sys161: Elapsed real time: 7.743475 seconds (40.2721 mhz)
+sys161: Elapsed virtual time: 10.082576792 seconds (25 mhz)
+]0;trinity@zion: ~/shared/os161-piepera-proj1trinity@zion:~/shared/os161-piepera-proj1$ exit
+exit
+
+Script done on Tue 01 May 2018 01:42:20 AM UTC
