@@ -223,10 +223,10 @@ bool lock_do_i_hold(struct lock *lock) {
     KASSERT(lock != NULL);
 
     spinlock_acquire(&lock->lk_spinlock);
-    struct thread *holder = lock->lk_holder;
+    bool is_held = lock->lk_holder == curthread;
     spinlock_release(&lock->lk_spinlock);
 
-    return holder == curthread;
+    return is_held;
 }
 
 ////////////////////////////////////////////////////////////
