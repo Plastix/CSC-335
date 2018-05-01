@@ -8,47 +8,55 @@ thread safe.
   A) Examine the code for kprintf. It uses two synchronization mechanisms for making its console output atomic --
   what are they?
 
-    kprintf() uses both normal mutual exclusion locks and spinlocks.
+    kprintf() uses both normal mutual exclusion locks (struct lock) and spinlocks (struct spinlock).
 
   B) Why might the kernel use two different mechanisms to protect console output?
 
     Spinlocks are used while the OS is in the process of setting up subsystems required for more complicated
     synchronization mechanisms. For example, kprintf() uses spinlocks before the OS can call printf_boostrap() which
     sets up the normal mutex lock. This is because the OS hasn't initialized things like RAM which are needed for
-    the internals of mutex lock to function.
+    the internals of mutex lock to function correctly.
 
   C) Which of the two synchronization mechanisms is the kernel using when the interleaved output is produced by running
   your thread tests?
 
-    The kernel is using the normal mutual exclusion locks.
+    The kernel is using the normal mutual exclusion locks (struct lock).
 
   D) Explain why, despite this, the output is still interleaving.  (You are going to fix this later.)
 
     Normal mutual exclusion locks (struct lock) are not implemented yet in OS/161. Although kprintf() is calling
     lock_acquire() and lock_release(), they are currently NOP methods so no synchronization is happening and
-    interleaving still occurs.
+    the print interleaving still occurs.
 
 
 2. Identify two other subsystems of the kernel that use synchronization mechanisms.  For each of these subsystems:
 
   A) Briefly describe the purpose of the subsystem.
 
-    1. emu.c: This provides a unified filesystem interface for the emulator hardware running on sys161.
-    2. console.c: This provides an interface for I/O operations for a generic device.
+    1. emu.c: This provides a unified filesystem interface for the emulator hardware running on sys161. For example,
+    this file contains implementations of methods for reading and writing files to the sys161 virtualized hard disk.
+
+    2. console.c: This provides an interface for I/O operations for a generic console device. This file implements
+    "putch" for printing a character and "getch" for reading a character.
 
   B) Which synchronization mechanisms do they use?
 
-    1. emu.c uses both mutex locks and semaphores.
-    2. console.c uses mutex locks.
+    1. emu.c uses both normal mutex locks and semaphores.
+
+    2. console.c uses both normal mutex locks and semaphores.
 
   C) For what purpose?
 
-    1. emu.c uses semaphores for managing interrupts and mutex locks for controlling reads and writes to the filesystem.
-    2. console.c uses mutex locks for controlling reading and writing to the device.
+    1. emu.c uses semaphores for waking up threads (signaling) after I/O interrupts and mutex locks for making reads
+    and writes to the filesystem atomic.
+
+    2. console.c uses mutex locks to make sure that reads and writes to the device are atomic. Semaphores are used to
+    to implementing non-blocking reads and writes using interrupts to wait for I/O completion.
 
   D) Are these subsystems afflicted by the same problem as kprintf?
 
     1. Yes, since emu.c uses mutex locks which are not implemented yet.
+
     2. Yes, since console.c mutex locks which are not implemented yet.
 
 
@@ -63,16 +71,16 @@ channels and spinlocks.
     store threads that are waiting to "acquire" the semaphore once another thread signals it. struct spinlock sem_lock
     is a spinlock which is used to make sure that the wait (P) and signal (V) operations are atomic. volatile unsigned
     sem_count maintains the internal count of the semaphore. The keyword "volatile" tells the compiler that it shouldn't
-    optimize any code using this variable since the variable will change its value.
+    optimize any code using this variable since the variable will frequently change its value.
 
   B) In prose, explain the purpose of every line of the function sem_create().
 
-    Line 50 creates a new local pointer variable to a semaphore struct. Line 52 calls kmalloc to allocate space on the
-    heap for a semaphore struct. The if statement on Lines 53-55 check whether the kmalloc failed to allocate the
+    Line 50 creates a new local pointer variable to a semaphore struct. Line 52 calls kmalloc() to allocate space on the
+    heap for a semaphore struct. The if statement on Lines 53-55 checks whether the kmalloc() failed to allocate the
     desired memory and returns a NULL pointer in this case. Line 57 copies the passed in string parameter to the
-    internal string field in semaphore. The if statement on Lines 58-61 check to see if this string copy failed. If so,
+    internal string field in semaphore. The if statement on Lines 58-61 checks to see if this string copy failed. If so,
     the allocated semaphore memory is freed and a NULL pointer is returned. Line 63 creates and allocates memory for a
-    new wait channel and sets the internal semaphore wait channel object. The if statement on Lines 64-68 checks to see
+    new wait channel and sets the internal semaphore wait channel pointer. The if statement on Lines 64-68 checks to see
     if the wait channel creation failed. If so, the copied semaphore string and the semaphore struct are freed and a
     NULL pointer is returned. Line 70 initializes the internal semaphore spinlock. Line 71 sets the internal semaphore
     counter to the specified initialization value. Line 73 returns a pointer to the successfully created semaphore
@@ -81,15 +89,16 @@ channels and spinlocks.
   C) In P, notice that the wait channel is locked before the spinlock is released.  Can this cause deadlock?  Explain
   why or why not.
 
-    No, because wchan_sleep() expects a locked spinlock. When the wake channel calls thread_switch(), this unlocks the
-    spinlock and wchan_sleep() re-locks it before returning to P().
+    No, because wchan_sleep() expects a locked spinlock. When the wake channel method calls thread_switch(), this
+    unlocks the spinlock before the thread sleeps. When the thread is awakened, wchan_sleep() re-locks the spinlock
+    before returning to P().
 
 4. Locate the implementation of wait channels in OS/161.  Examine all the functions in this implementation.
 
   A) Why are spinlocks used in the function that checks whether a wait channel is empty?
 
     wchan_isempty() needs to be atomic. We don't want it interleaving with other code which is modifying the wait
-    channel and therefore read some broken state.
+    channel internals and therefore read some broken state.
 
   B) Which function is responsible for putting threads to sleep?  This function make an assumption about the state of
   the thread -- what is it?  This function also makes an important assumption about the state of the wait channel --
@@ -102,4 +111,5 @@ channels and spinlocks.
   C) Look at the implementation of spinlocks, wait channels and P() of semaphores.  During what portion of the code are
   interrupts disabled?
 
-    Interrupts are disabled when a spinlock is acquired and when switching between threads.
+    Interrupts are disabled when a spinlock is acquired and until a spinlock is released. In addition, interrupts are
+    disabled when the OS is switching between threads.
