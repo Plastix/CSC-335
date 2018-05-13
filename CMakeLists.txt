@@ -142,28 +142,28 @@ add_executable(os161_bgp
         src/kern/arch/sys161/dev/lamebus_machdep.c
         src/kern/arch/sys161/include/bus.h
         src/kern/arch/sys161/include/maxcpus.h
-        src/kern/compile/PROJ1/includelinks/machine/kern/endian.h
-        src/kern/compile/PROJ1/includelinks/machine/kern/regdefs.h
-        src/kern/compile/PROJ1/includelinks/machine/kern/setjmp.h
-        src/kern/compile/PROJ1/includelinks/machine/kern/signal.h
-        src/kern/compile/PROJ1/includelinks/machine/kern/types.h
-        src/kern/compile/PROJ1/includelinks/mips/kern/endian.h
-        src/kern/compile/PROJ1/includelinks/mips/kern/regdefs.h
-        src/kern/compile/PROJ1/includelinks/mips/kern/setjmp.h
-        src/kern/compile/PROJ1/includelinks/mips/kern/signal.h
-        src/kern/compile/PROJ1/includelinks/mips/kern/types.h
-        src/kern/compile/PROJ1/autoconf.c
-        src/kern/compile/PROJ1/autoconf.h
-        src/kern/compile/PROJ1/opt-automationtest.h
-        src/kern/compile/PROJ1/opt-concurrent_list.h
-        src/kern/compile/PROJ1/opt-dumbvm.h
-        src/kern/compile/PROJ1/opt-hangman.h
-        src/kern/compile/PROJ1/opt-net.h
-        src/kern/compile/PROJ1/opt-netfs.h
-        src/kern/compile/PROJ1/opt-noasserts.h
-        src/kern/compile/PROJ1/opt-semfs.h
-        src/kern/compile/PROJ1/opt-sfs.h
-        src/kern/compile/PROJ1/vers.c
+        src/kern/compile/PROJ3/includelinks/machine/kern/endian.h
+        src/kern/compile/PROJ3/includelinks/machine/kern/regdefs.h
+        src/kern/compile/PROJ3/includelinks/machine/kern/setjmp.h
+        src/kern/compile/PROJ3/includelinks/machine/kern/signal.h
+        src/kern/compile/PROJ3/includelinks/machine/kern/types.h
+        src/kern/compile/PROJ3/includelinks/mips/kern/endian.h
+        src/kern/compile/PROJ3/includelinks/mips/kern/regdefs.h
+        src/kern/compile/PROJ3/includelinks/mips/kern/setjmp.h
+        src/kern/compile/PROJ3/includelinks/mips/kern/signal.h
+        src/kern/compile/PROJ3/includelinks/mips/kern/types.h
+        src/kern/compile/PROJ3/autoconf.c
+        src/kern/compile/PROJ3/autoconf.h
+        src/kern/compile/PROJ3/opt-automationtest.h
+        src/kern/compile/PROJ3/opt-concurrent_list.h
+        src/kern/compile/PROJ3/opt-dumbvm.h
+        src/kern/compile/PROJ3/opt-hangman.h
+        src/kern/compile/PROJ3/opt-net.h
+        src/kern/compile/PROJ3/opt-netfs.h
+        src/kern/compile/PROJ3/opt-noasserts.h
+        src/kern/compile/PROJ3/opt-semfs.h
+        src/kern/compile/PROJ3/opt-sfs.h
+        src/kern/compile/PROJ3/vers.c
         src/kern/concurrent_list/linked_list.c
         src/kern/concurrent_list/linked_list_test.c
         src/kern/dev/generic/beep.c
