@@ -1,0 +1,25 @@
+Interleaving 1 Test
+
+Running:
+    llt 1
+
+Test output:
+   OS/161 kernel [? for menu]: llt 1
+
+   Running test: interleaving_1
+   list: 0:
+   list size: 0
+   Added 'A' to list via Thread 1
+   Added 'B' to list via Thread 2
+   list: 0: 0[B]
+   list size: 2
+
+   1 tests, 0 assertions, 0 failures
+
+This test calls linked_list_insert from two different threads on an empty list. The Thread 1 yields to Thread 2 after
+obtaining a reference to list->first which is NULL since the list is empty. The Thread 2 does the same as Thread 1 and
+yields after getting a NULL list->first reference. Thread 1 then adds 'A' to the head of the list and updates the first
+and last pointers of the list to the new 'A' node. After Thread 1 finishes, Thread 2 adds 'B' to the head of the list
+however it still thinks the list is empty (because its list->first is NULL) so it overwrites the first and last pointers
+to 'B'. This means that 'A' is not added to the list however the list size is '2'.
+

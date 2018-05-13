@@ -1,0 +1,23 @@
+Interleaving 3 Test
+
+Running:
+    llt 3
+
+Test output:
+   OS/161 kernel [? for menu]: llt 3
+
+   Running test: interleaving_3
+   list: 0: 0[A]
+   list size: 1
+   panic: Assertion failed: fl != fl->next, at ../../vm/kmalloc.c:1182 (subpage_kfree)
+   sys161: trace: software-requested debugger stop
+   sys161: Waiting for debugger connection...
+
+   1 tests, 0 assertions, 0 failures
+
+This test calls linked_list_remove_head from two threads using a non-empty list with a single element 'A'. Thread 1
+yields after getting a reference to current head 'A' node and looking up its next pointer. Thread 2 does the same thing
+and yields after getting the current head of the list which is still the 'A' node. Thread 1 then updates the list's
+first pointer and frees the 'A' node. Once Thread 1 finishes, Thread 2 does the same thing with its pointer to node 'A'.
+While the internal list pointer operations don't crash, the free at the end of the linked_list_remove_head causes a
+kernel panic because the node was already freed by Thread 1.
