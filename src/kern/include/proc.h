@@ -76,6 +76,7 @@ struct proc {
      *      Add open files
      *      CPU burst data (MAYBE LATER)
      *      Return value
+     *      Mutex
      *
      *      Add parent process
      *          Add parent PID
