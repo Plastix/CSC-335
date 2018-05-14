@@ -70,7 +70,22 @@ struct proc {
 	/* VFS */
 	struct vnode *p_cwd;		/* current working directory */
 
-	/* add more material here as needed */
+    /*
+     * TODO: Add more data:
+     *      Add (unsigned) PID
+     *      Add open files
+     *      CPU burst data (MAYBE LATER)
+     *      Return value
+     *
+     *      Add parent process
+     *          Add parent PID
+     *          Add parent pointer
+     *
+     *
+     *      Add child processes
+     *          Child PIDs
+     *          child pointers
+     */
 };
 
 /* This is the process structure for the kernel and for kernel-only threads. */

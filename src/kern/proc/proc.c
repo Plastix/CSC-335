@@ -91,6 +91,10 @@ proc_create(const char *name)
  * Note: nothing currently calls this. Your wait/exit code will
  * probably want to do so.
  */
+
+/*
+ * TODO: Update proc_destroy with every addition to proc struct
+ */
 void
 proc_destroy(struct proc *proc)
 {

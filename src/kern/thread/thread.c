@@ -39,17 +39,14 @@
 #include <array.h>
 #include <cpu.h>
 #include <spl.h>
-#include <spinlock.h>
 #include <wchan.h>
 #include <thread.h>
-#include <threadlist.h>
 #include <threadprivate.h>
 #include <proc.h>
 #include <current.h>
 #include <synch.h>
 #include <addrspace.h>
 #include <mainbus.h>
-#include <vnode.h>
 
 
 /* Magic number used as a guard value on kernel thread stacks. */

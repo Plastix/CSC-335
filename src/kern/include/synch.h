@@ -153,6 +153,7 @@ void cv_signal(struct cv *cv, struct lock *lock);
 void cv_broadcast(struct cv *cv, struct lock *lock);
 
 /*
+ * TODO: IMPLEMENT
  * Reader-writer locks.
  *
  * When the lock is created, no thread should be holding it. Likewise,
