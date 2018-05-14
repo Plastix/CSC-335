@@ -60,19 +60,30 @@ struct vnode;
  * without sleeping.
  */
 struct proc {
-	char *p_name;			/* Name of this process */
-	struct spinlock p_lock;		/* Lock for this structure */
-	unsigned p_numthreads;		/* Number of threads in this process */
+    char *p_name;            /* Name of this process */
+    struct spinlock p_lock;        /* Lock for this structure */
+    unsigned p_numthreads;        /* Number of threads in this process */
 
-	/* VM */
-	struct addrspace *p_addrspace;	/* virtual address space */
+    /* VM */
+    struct addrspace *p_addrspace;    /* virtual address space */
 
-	/* VFS */
-	struct vnode *p_cwd;		/* current working directory */
+    /* VFS */
+    struct vnode *p_cwd;        /* current working directory */
 
+    //////////////////////
+
+    // Process ID
+    unsigned pid;
+    // Return value of process
+    int return_value;
+    // Thread of proccess (1-1 mapping)
+    struct thread *p_thread;
+    // (Sleep) Lock for this structure
+    struct lock *p_mutex;
     /*
      * TODO: Add more data:
      *      Add (unsigned) PID
+     *      Add thread
      *      Add open files
      *      CPU burst data (MAYBE LATER)
      *      Return value
