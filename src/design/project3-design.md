@@ -7,7 +7,7 @@ What are the major components that you will have to add to OS/161 and how will t
 
     We will be using many kernel threads which are preemptively scheduled. 
 
-1) What data structures will you need to add?  Be specific as possible here, perhaps even writing out the structs you will be adding to or defining.
+2) What data structures will you need to add?  Be specific as possible here, perhaps even writing out the structs you will be adding to or defining.
 
     - Update proc struct
     
@@ -17,19 +17,19 @@ What are the major components that you will have to add to OS/161 and how will t
     
     TODO
 
-1) How will you handle process termination?  How will this effect parent / child processes?
+3) How will you handle process termination?  How will this effect parent / child processes?
 
     We are using cascading termination of processes.
     TODO
 
-1) How does your implementation protect the kernel data structures?
+4) How does your implementation protect the kernel data structures?
 
     - Locks will be used to protect against concurrency issues
     - Some data structures will be made as monitors
         - pcb
     TODO
 
-1) How does your implementation protect the kernel and user processes from rogue processes?
+5) How does your implementation protect the kernel and user processes from rogue processes?
 
     We will use defensive programming to protect the OS against poorly written or misbehaving processes without crashing
     the OS. We will make sure to check all the preconditions of syscalls (e.g., non-null pointers) before running any 
@@ -38,18 +38,18 @@ What are the major components that you will have to add to OS/161 and how will t
     fork bombs the OS, eventually the OS will run out of memory and the next fork syscall should terminate when allocating
     memory fails. 
     
-1) What kind of scheduling policy will you implement?  Why?
+6) What kind of scheduling policy will you implement?  Why?
 
     We will begin by using the default scheduler (1 second Round Robin) and will improve on it later in the project if
     we have time.
 
-1) How will you manage concurrent file accesses? 
+7) How will you manage concurrent file accesses? 
 
     We will not allow concurrent file accesses. Each file will contain a mutex lock which must be acquired before a
     user program can read or write to it. We considered implementing Read-Write locks but this seems like more work than
     what is needed. Read-Write locks are an enhancement to allow for concurrent file reads which isn't required.
 
-1) How will you deal with transferring data from user space to kernel space to user space (e.g., when you are writing exec)?  
+8) How will you deal with transferring data from user space to kernel space to user space (e.g., when you are writing exec)?  
 What built-in features of OS/161 will you use to do this?
 
     TODO
@@ -125,14 +125,15 @@ Give a time line of implementation focusing on what components need to be implem
 (I'm not looking for deadlines, though you can set those for your own benefit.)
 --->
 
+
 1) Add metadata to PCB.
-    1) Define `struct openfile` and add open file list to PCB.
-1) Implement `getpid()` and `__getcwd()`. 
-1) Implement a simple version of `_exit()` via `thread_exit()`.
-1) Implement a simple version of `write`using `kprintf()`.
-    1) Test using `testbin/palin`
+    - Define `struct openfile` and add open file list to PCB.
+2) Implement `getpid()` and `__getcwd()`. 
+3) Implement a simple version of `_exit()` via `thread_exit()`.
+4) Implement a simple version of `write`using `kprintf()`.
+    - Test using `testbin/palin`
     
-1) TODO
+5) TODO
 
 
 ### Group Work
