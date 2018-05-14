@@ -128,8 +128,11 @@ Give a time line of implementation focusing on what components need to be implem
 
 1) Add metadata to PCB.
     - Define `struct openfile` and add open file list to PCB.
-2) Implement `getpid()` and `__getcwd()`. 
+    
+2) Implement `getpid()` and `__getcwd()`.
+ 
 3) Implement a simple version of `_exit()` via `thread_exit()`.
+
 4) Implement a simple version of `write`using `kprintf()`.
     - Test using `testbin/palin`
     
