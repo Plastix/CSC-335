@@ -156,11 +156,11 @@ using Clion, it makes it easy for us to find TODOs inside of code.
 
 **Division of work:**
 
-*Violet*:
-TODO
+*Aidan*:
+open(), read(), write(), lseek() and associated infrastructure
 
 *James*:
-TODO
+fork(), execv(), waitpid(), associated infrastructure
 
-*Aidan*:
-TODO
+*Violet*:
+close(), dup2(), chdir(), __getcwd() and associated infrastructure
