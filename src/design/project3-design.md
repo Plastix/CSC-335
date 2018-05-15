@@ -1,13 +1,15 @@
 # Project 3 Design Document
 
 ### Design Choices
-What are the major components that you will have to add to OS/161 and how will they interact with OS/161?  To this end you may want to discuss your answers to the following questions.
+What are the major components that you will have to add to OS/161 and how will they interact with OS/161?  To this end 
+you may want to discuss your answers to the following questions.
 
 1) Will there be one or many kernel threads?  Preemptive or non-preemptive.
 
     We will be using many kernel threads which are preemptively scheduled. 
 
-2) What data structures will you need to add?  Be specific as possible here, perhaps even writing out the structs you will be adding to or defining.
+2) What data structures will you need to add?  Be specific as possible here, perhaps even writing out the structs you 
+will be adding to or defining.
 
     - Update proc struct
     
@@ -49,8 +51,8 @@ What are the major components that you will have to add to OS/161 and how will t
     user program can read or write to it. We considered implementing Read-Write locks but this seems like more work than
     what is needed. Read-Write locks are an enhancement to allow for concurrent file reads which isn't required.
 
-8) How will you deal with transferring data from user space to kernel space to user space (e.g., when you are writing exec)?  
-What built-in features of OS/161 will you use to do this?
+8) How will you deal with transferring data from user space to kernel space to user space (e.g., when you are 
+writing `exec()`)? What built-in features of OS/161 will you use to do this?
 
     TODO
 
@@ -90,7 +92,9 @@ This syscall returns errors if the specified file desciptor is invalid or does n
 position and offset are invalid, an error is returned. This syscall must acquire the internal PCB lock and release it
 once finished.
 
-`close()`: 
+`close()`: This syscall needs to interface with the PCB to remove the file from the open file list in the PCB. Open files
+in the PCB will have refcounts so that the last process to close a file will be responsible for closing the file in the
+VFS layer. An error is returned if closing the file fails or the specified file descriptor is invalid.
 
 `dup2()`: This syscall needs to interface with the open file list in the PCB to read the input file descriptor. It also
 needs to interface with the VFS because it needs to close any open files matching the new file descriptor. Errors occur
@@ -114,10 +118,19 @@ the kernel and no errors can occur. This method does need to be atomic on the PC
 
 `execv()`:
 
-`waitpid()`:
+`waitpid()`: This syscall needs to read the PCB to determine if one of its children has completed. If a child matching 
+the specified PID has terminated, then it should return. If no matching child PID is found, then an error is returned.
+Otherwise, the current thread should sleep and only awoken when the corresponding child signals the thread via the 
+`exit()` system call. The PCB will contain a semaphore which `waitpid()` waits on and is signaled by the child process 
+in `exit()`.   
 
 `_exit()`: This syscall needs to update the PCB's return value using the specified exit code after acquiring the PCB's
-internal lock. TODO
+internal lock. In addition, the syscall needs to close all open files. Since we are implementing cascading termination, 
+all children processes of the current process are also  terminated. If the process has no parent (i.e., it was created 
+by the kernel and not forked by a user program), then the syscall can cleanup the PCB and any associated data. 
+Otherwise, the syscall needs to signal to the parent process that it has finished. Parent processes must explicitly wait 
+for a child via `waitpid()` otherwise the child will be terminated via cascading termination when the parent calls 
+`exit()`.
 
 ### Implementation Timeline
 <!---
@@ -125,19 +138,17 @@ Give a time line of implementation focusing on what components need to be implem
 (I'm not looking for deadlines, though you can set those for your own benefit.)
 --->
 
-
-1) Add metadata to PCB.
+1) Add required metadata to PCB.
     - Define `struct openfile` and add open file list to PCB.
-    
-2) Implement `getpid()` and `__getcwd()`.
- 
-3) Implement a simple version of `_exit()` via `thread_exit()`.
+     
+2) Implement a simple version of `_exit()` via `thread_exit()`.
 
-4) Implement a simple version of `write`using `kprintf()`.
+3) Implement a simple version of `write()` using `kprintf()`.
     - Test using `testbin/palin`
     
+4) Implement `getpid()` and `__getcwd()`.
+   
 5) TODO
-
 
 ### Group Work
 <!---
@@ -157,10 +168,10 @@ using Clion, it makes it easy for us to find TODOs inside of code.
 **Division of work:**
 
 *Aidan*:
-open(), read(), write(), lseek() and associated infrastructure
+`open()`, `read()`, `write()`, `_exit()` and associated infrastructure
 
 *James*:
-fork(), execv(), waitpid(), associated infrastructure
+`fork()`, `execv()`, `waitpid()`, and associated infrastructure
 
 *Violet*:
-close(), dup2(), chdir(), __getcwd() and associated infrastructure
+`close()`, `dup2()`, `lseek()`, `chdir()`, `__getcwd()`, `getpid()`,  and associated infrastructure
