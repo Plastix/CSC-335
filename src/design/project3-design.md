@@ -134,6 +134,15 @@ Give a time line of implementation focusing on what components need to be implem
 (I'm not looking for deadlines, though you can set those for your own benefit.)
 --->
 
+Below is a general idea of which tasks need to come first and which should be done later. Although presented in a numerical
+ordering, many of these tasks will be completed concurrently. Once task 1) is complete, for example. task 3) can begin without
+task 2) having been complete. Similarly, once `_exit()` is implemented, work can begin on various user process related syscalls
+in tasks 5) and 6) even while work is being done on tasks 4), and task 7) can be begun once task 4) is done without concern for
+the intervening tasks. What we want to capture here is some sense of task dependency: implementing `fork()` and `execv()` depends
+on fleshing out the PCB `proc` struct and being able to `_exit()` threads, but not on having an implemented `openfile` struct or
+being able to manipulate files. Similarly, `lseek()`, `read()`, `write()` and so on need the `openfile` struct to work and and
+need `open()` and `close()` syscalls to be able to be tested effectively.
+
 1) Add required metadata to PCB.
 
 2) Define `struct openfile` and add open file list to PCB.
@@ -150,7 +159,7 @@ Give a time line of implementation focusing on what components need to be implem
 
 8) Roughly implement `waitPID()` and other file syscalls
 
-9) Polish implemeented sycalls and tie up loose ends
+9) Polish implemented sycalls and tie up loose ends by implementing remaining syscalls
 
 # Group Work
 <!---
