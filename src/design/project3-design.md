@@ -1,6 +1,7 @@
 # Project 3 Design Document
+James, Violet, Aidan (os161-bgp)
 
-### Design Choices
+# Design Choices
 What are the major components that you will have to add to OS/161 and how will they interact with OS/161?  To this end you may want to discuss your answers to the following questions.
 
 1) Will there be one or many kernel threads?  Preemptive or non-preemptive.
@@ -35,7 +36,7 @@ We will not allow concurrent file accesses. Each file will contain a mutex lock 
 
 As discussed in class, transferring data from kernel to user space and vice-versa is primarily managed by the `copyout()` and `copyin()` methods. Whichever syscalls and other methods need to move between user- and kernel-space will know precisely what kind of data they are moving from one to the other and the size of the data. In `exec()`, for example, it is likely that program data will be moved, which may be a `proc` or something like a `switchframe` struct which contains registers, program code, and so on. Because we know ahead of time what kind of data and what amount of data is being transferred, `copyin()` and `copyout()` can be used carefully.
 
-### Syscalls
+# Syscalls
 <!---
 What which of your components and OS/161 with it interface with?
 What kernel data structures will it have to access and modify?
@@ -127,7 +128,7 @@ Otherwise, the syscall needs to signal to the parent process that it has finishe
 for a child via `waitpid()` otherwise the child will be terminated via cascading termination when the parent calls 
 `exit()`.
 
-### Implementation Timeline
+# Implementation Timeline
 <!---
 Give a time line of implementation focusing on what components need to be implemented before other components.  
 (I'm not looking for deadlines, though you can set those for your own benefit.)
@@ -151,7 +152,7 @@ Give a time line of implementation focusing on what components need to be implem
 
 9) Polish implemeented sycalls and tie up loose ends
 
-### Group Work
+# Group Work
 <!---
 Briefly discuss how you are going to work together as a group, how you are going to manage access to the repository, 
 and what base code you will be starting from or porting.
@@ -166,7 +167,7 @@ branch to work on. We will be using Gitlab merge requests to review each others 
 addition, we will be using Gitlab to track issues and TODOs. We may also add TODOS in code comments. Since we are all 
 using Clion, it makes it easy for us to find TODOs inside of code.
 
-**Division of work:**
+### Division of Work
 
 *Aidan*:
 `open()`, `read()`, `write()`, `_exit()` and associated infrastructure
