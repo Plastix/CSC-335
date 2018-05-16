@@ -42,6 +42,8 @@ struct addrspace;
 struct thread;
 struct vnode;
 
+#define MAX_CHILDS 32
+
 /*
  * Process structure.
  *
@@ -70,33 +72,30 @@ struct proc {
     /* VFS */
     struct vnode *p_cwd;        /* current working directory */
 
-    //////////////////////
-
     // Process ID
     unsigned pid;
+
     // Return value of process
     int return_value;
+
     // Thread of proccess (1-1 mapping)
     struct thread *p_thread;
+
     // (Sleep) Lock for this structure
     struct lock *p_mutex;
+
+    // Pointer to Parent
+    struct proc *p_parent;
+
+    // Child Data
+    unsigned p_num_childs;
+
+    struct proc *p_childs[MAX_CHILDS];
+
     /*
      * TODO: Add more data:
-     *      Add (unsigned) PID
-     *      Add thread
      *      Add open files
      *      CPU burst data (MAYBE LATER)
-     *      Return value
-     *      Mutex
-     *
-     *      Add parent process
-     *          Add parent PID
-     *          Add parent pointer
-     *
-     *
-     *      Add child processes
-     *          Child PIDs
-     *          child pointers
      */
 };
 
