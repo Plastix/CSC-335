@@ -44,3 +44,14 @@ options concurrent_list
 
 file  shared_buffer/shared_buffer.c
 file  shared_buffer/shared_buffer_test.c
+
+
+######################################
+#                                    #
+#  System Call files                 #
+#                                    #
+######################################
+
+file syscall/fork_syscall.c
+file syscall/execv_syscall.c
+file syscall/waitpid_syscall.c

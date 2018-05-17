@@ -92,6 +92,8 @@ struct proc {
 
     struct proc *p_childs[MAX_CHILDS];
 
+    struct cv waiting;
+
     /*
      * TODO: Add more data:
      *      Add open files

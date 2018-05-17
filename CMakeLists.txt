@@ -555,4 +555,4 @@ add_executable(os161_bgp
         src/userland/testbin/zero/zero.c
         src/kern/include/shared_buffer.h
         src/kern/shared_buffer/shared_buffer.c
-        src/kern/shared_buffer/shared_buffer_test.c)
+        src/kern/shared_buffer/shared_buffer_test.c src/kern/syscall/fork_syscall.c src/kern/syscall/execv_syscall.c src/kern/syscall/waitpid_syscall.c)
