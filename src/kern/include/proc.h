@@ -42,7 +42,11 @@ struct addrspace;
 struct thread;
 struct vnode;
 
+#define MAX_PROCS 128
 #define MAX_CHILDS 32
+
+struct proc *Global_Proc_Table[MAX_PROCS];
+unsigned num_procs = 0;
 
 /*
  * Process structure.

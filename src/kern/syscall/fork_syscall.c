@@ -4,6 +4,9 @@
 
 #include <types.h>
 #include <syscall.h>
+#include <current.h> // For curproc
+#include <proc.h>
+#include <addrspace.h>
 
 pid_t sys_fork(void) {
     // TODO (James): Fill in fork()
@@ -15,5 +18,13 @@ pid_t sys_fork(void) {
      *  - Start clone of original process running on thread at same mem addr
      *  - Return two different values depending on who's getting returned to (HOW???)
      */
+    KASSERT(curproc != NULL);
+
+    if
+    struct proc *current_proc = curproc;
+
+
+
+
     return (pid_t) -1; //TODO (James): Change this to return the proper PID
 }

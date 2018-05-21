@@ -48,6 +48,7 @@
 #include <current.h>
 #include <addrspace.h>
 #include <vnode.h>
+#include <synch.h>
 
 /*
  * The process for the kernel; this holds all the kernel-only threads.
@@ -57,9 +58,7 @@ struct proc *kproc;
 /*
  * Create a proc structure.
  */
-static
-struct proc *
-proc_create(const char *name)
+static struct proc *proc_create(const char *name)
 {
 	struct proc *proc;
 
@@ -82,6 +81,24 @@ proc_create(const char *name)
 	/* VFS fields */
 	proc->p_cwd = NULL;
 
+	proc->pid = num_procs + 1;
+
+	proc->return_value = 0;
+
+	proc->p_thread = curthread;
+
+	proc->p_parent = curthread->t_proc;
+
+	proc->p_mutex = lock_create("proc_lock");
+
+	proc->p_num_childs = 0;
+
+	for (int i=0; i<MAX_CHILDS; i++) {
+	    proc->p_childs[i] = NULL;
+	}
+
+	proc->waiting = cv_create("proc_cv");
+
 	return proc;
 }
 
@@ -95,8 +112,7 @@ proc_create(const char *name)
 /*
  * TODO: Update proc_destroy with every addition to proc struct
  */
-void
-proc_destroy(struct proc *proc)
+void proc_destroy(struct proc *proc)
 {
 	/*
 	 * You probably want to destroy and null out much of the
@@ -186,6 +202,12 @@ proc_bootstrap(void)
 	if (kproc == NULL) {
 		panic("proc_create for kproc failed\n");
 	}
+
+	for (int i=0; i<MAX_PROCS; i++) {
+	    Global_Proc_Table[i] = NULL;
+	}
+	Global_Proc_Table[0] = kproc;
+	num_procs++;
 }
 
 /*
