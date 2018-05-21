@@ -81,7 +81,7 @@ static struct proc *proc_create(const char *name)
 	/* VFS fields */
 	proc->p_cwd = NULL;
 
-	proc->pid = num_procs + 1;
+	proc->pid = GLOBAL_PROC_COUNT + 1;
 
 	proc->return_value = 0;
 
@@ -207,7 +207,7 @@ proc_bootstrap(void)
 	    Global_Proc_Table[i] = NULL;
 	}
 	Global_Proc_Table[0] = kproc;
-	num_procs++;
+	GLOBAL_PROC_COUNT = 1;
 }
 
 /*

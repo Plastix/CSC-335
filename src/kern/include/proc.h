@@ -46,7 +46,7 @@ struct vnode;
 #define MAX_CHILDS 32
 
 struct proc *Global_Proc_Table[MAX_PROCS];
-unsigned num_procs = 0;
+unsigned GLOBAL_PROC_COUNT;
 
 /*
  * Process structure.

@@ -20,8 +20,8 @@ pid_t sys_fork(void) {
      */
     KASSERT(curproc != NULL);
 
-    if
-    struct proc *current_proc = curproc;
+//    if
+//    struct proc *current_proc = curproc;
 
 
 
