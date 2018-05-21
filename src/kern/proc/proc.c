@@ -47,7 +47,6 @@
 #include <proc.h>
 #include <current.h>
 #include <addrspace.h>
-#include <vnode.h>
 
 /*
  * The process for the kernel; this holds all the kernel-only threads.
@@ -186,6 +185,11 @@ proc_bootstrap(void)
 	if (kproc == NULL) {
 		panic("proc_create for kproc failed\n");
 	}
+
+    global_file_table = global_table_create();
+    if (global_file_table == NULL) {
+        panic("Global file table creation failed!");
+    }
 }
 
 /*

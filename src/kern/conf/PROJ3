@@ -55,3 +55,16 @@ file  shared_buffer/shared_buffer_test.c
 file syscall/fork_syscall.c
 file syscall/execv_syscall.c
 file syscall/waitpid_syscall.c
+file syscall/exit_syscall.c
+file syscall/open_syscall.c
+file syscall/read_syscall.c
+file syscall/write_syscall.c
+
+
+######################################
+#                                    #
+#  File Table files                  #
+#                                    #
+######################################
+
+file io/file_table.c
