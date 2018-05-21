@@ -2,10 +2,10 @@
 // Created by boggsj on 5/16/18.
 //
 
-#include <sys/types.h>
-#include <kern/unistd.h>
+#include <types.h>
+#include <syscall.h>
 
-pid_t waitpid(pid_t pid, int *returncode, int flags) {
+pid_t sys_waitpid(pid_t pid, int *returncode, int flags) {
     // TODO (James): Fill in waitpid()
     /*
      * Things to be done:
@@ -15,4 +15,8 @@ pid_t waitpid(pid_t pid, int *returncode, int flags) {
      *  - Get `proc->return_vale` from the target process and return it
      *
      */
+
+    (void) returncode;
+    (void) flags;
+    return pid;
 }
