@@ -29,7 +29,7 @@ typedef struct {
     // Lock for sync
     struct lock *lk;
 
-} File_Table;
+} Global_File_Table;
 
 ////////////////////////////////////
 // Local File Table
@@ -58,7 +58,22 @@ typedef struct {
     // Lock for sync
     struct lock *lk;
 
-} File_Desc_Table;
+} Local_File_Table;
+
+////////////////////////////////////
+// Local File Table Operations
+Local_File_Table *local_table_create(void);
+
+int local_table_add_file(Local_File_Table *table, File *file, int *ret);
+
+
+////////////////////////////////////
+// Global File Table Operations
+Global_File_Table *global_table_create(void);
+
+int global_table_open_file(char *filename, int flags, File **ret);
+
+
 
 // TODO (Aidan) Add monitor methods
 

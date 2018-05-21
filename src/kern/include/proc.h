@@ -45,7 +45,7 @@ struct vnode;
 
 // Global file table
 // Initialized in proc_bootstrap()
-File_Table global_file_table;
+Global_File_Table *global_file_table;
 
 #define MAX_CHILDS 32
 
@@ -99,7 +99,7 @@ struct proc {
 
     struct cv *waiting;
 
-    File_Desc_Table *local_file_table;
+    Local_File_Table *local_file_table;
 
     /*
      * TODO: Add more data:

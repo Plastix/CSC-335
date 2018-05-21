@@ -1,8 +1,10 @@
-#include <types.h>
+#include  <types.h>
 #include <syscall.h>
 #include <copyinout.h>
 #include <lib.h>
 #include <kern/errno.h>
+#include <current.h>
+#include <proc.h>
 
 int sys_open(const_userptr_t filename, int flags, int *fd) {
     int err;  // Return value of internal OS161 calls
@@ -23,9 +25,19 @@ int sys_open(const_userptr_t filename, int flags, int *fd) {
         return err;
     }
 
-    (void) flags;
+    File *new_file;
+    // Atomic operation
+    err = global_table_open_file(k_filename, flags, &new_file);
+    if (err) {
+        return err;
+    }
 
-    // TODO (Aidan)
+    // Atomic operation
+    err = local_table_add_file(curproc->local_file_table, new_file, fd);
+    if (err) {
+        return err;
+    }
 
     return 0;
+
 }
