@@ -85,9 +85,13 @@ static struct proc *proc_create(const char *name)
 
 	proc->return_value = 0;
 
-	proc->p_thread = curthread;
-
-	proc->p_parent = curthread->t_proc;
+	if (strcmp(name, "[kernel]") == 0) {
+	    proc->p_thread = NULL;
+	    proc->p_parent = NULL;
+	} else {
+        proc->p_thread = curthread;
+        proc->p_parent = curthread->t_proc;
+	}
 
 	proc->p_mutex = lock_create("proc_lock");
 
