@@ -40,6 +40,12 @@ File_Desc *file_desc_create(File *file, int flags) {
         return NULL;
     }
 
+    f->lk = lock_create("File desc lock");
+    if (f->lk == NULL) {
+        kfree(f);
+        return NULL;
+    }
+
     f->seek_location = 0;
     f->flags = flags;
     f->file = file;
@@ -77,6 +83,17 @@ int local_table_add_file(Local_File_Table *table, File *file, int flags, int *re
 
     lock_release(table->lk);
     return EIO;
+}
+
+File_Desc *local_table_get(Local_File_Table *table, int file_handle) {
+    KASSERT(file_handle >= 0);
+    KASSERT(file_handle < MAX_LOCAL_TABLE_SIZE);
+
+    lock_acquire(table->lk);
+    File_Desc *desc = table->files[file_handle];
+    lock_release(table->lk);
+
+    return desc;
 }
 
 
@@ -128,6 +145,7 @@ int global_table_open_file(char *filename, int flags, File **ret) {
     int err;
 
     struct vnode *vn;
+    // This destroys the filename buffer passed in
     err = vfs_open(filename, flags, 0, &vn);
 
     if (err) {

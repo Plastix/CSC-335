@@ -44,6 +44,8 @@ typedef struct {
 
     off_t seek_location;
 
+    // Lock for sync
+    struct lock *lk;
 
 } File_Desc;
 
@@ -68,6 +70,7 @@ File_Desc *file_desc_create(File *file, int flags);
 
 int local_table_add_file(Local_File_Table *table, File *file, int flags, int *ret);
 
+File_Desc *local_table_get(Local_File_Table *table, int file_handle);
 
 ////////////////////////////////////
 // Global File Table Operations

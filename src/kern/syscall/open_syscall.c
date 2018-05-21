@@ -28,6 +28,7 @@ int sys_open(const_userptr_t filename, int flags, int *fd) {
     File *new_file;
     // Atomic operation
     err = global_table_open_file(k_filename, flags, &new_file);
+    kfree(k_filename);
     if (err) {
         return err;
     }
