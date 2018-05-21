@@ -15,6 +15,10 @@ typedef struct {
 
     // Lock for sync (read/write)
     struct lock *lk;
+
+    // Labels this file standard
+    // and therefore should not be removed
+    bool is_standard;
 } File;
 
 
@@ -47,6 +51,13 @@ typedef struct {
     // Lock for sync
     struct lock *lk;
 
+    // Labels this file descriptor as STD*
+    // -1 = Not Standard
+    // 0 = STDIN
+    // 1 = STDOUT
+    // 2 = STDERR
+    int standard;
+
 } File_Desc;
 
 typedef struct {
@@ -66,8 +77,6 @@ typedef struct {
 // Local File Table Operations
 Local_File_Table *local_table_create(void);
 
-File_Desc *file_desc_create(File *file, int flags);
-
 int local_table_add_file(Local_File_Table *table, File *file, int flags, int *ret);
 
 File_Desc *local_table_get(Local_File_Table *table, int file_handle);
@@ -75,8 +84,6 @@ File_Desc *local_table_get(Local_File_Table *table, int file_handle);
 ////////////////////////////////////
 // Global File Table Operations
 Global_File_Table *global_table_create(void);
-
-File *file_create(struct vnode *node);
 
 int global_table_open_file(char *filename, int flags, File **ret);
 
