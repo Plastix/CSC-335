@@ -92,7 +92,7 @@ struct proc {
 
     struct proc *p_childs[MAX_CHILDS];
 
-    struct cv waiting;
+    struct cv *waiting;
 
     /*
      * TODO: Add more data:
