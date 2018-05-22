@@ -33,7 +33,7 @@ int sys_fork(struct trapframe *tf, pid_t *pid) {
         return EMPROC;
     }
 
-
+    lock_acquire(curproc->p_mutex);
     /*
      * CREATE A NEW PROCESS STRUCT
      */
@@ -61,6 +61,7 @@ int sys_fork(struct trapframe *tf, pid_t *pid) {
     if (new_tf == NULL) {
         kfree(new_proc->p_addrspace);
         kfree(new_proc);
+        lock_release(curproc->p_mutex);
         return ENOMEM;
     }
     memcpy(new_tf, tf, sizeof(struct trapframe));
@@ -68,7 +69,7 @@ int sys_fork(struct trapframe *tf, pid_t *pid) {
     result = thread_fork("user_proc_thread", new_proc, enter_forked_process, new_tf, new_proc->pid);
 
     if (result) {
-
+        lock_release(curproc->p_mutex);
         return result;
     }
 
@@ -81,6 +82,7 @@ int sys_fork(struct trapframe *tf, pid_t *pid) {
     }
     *pid = new_proc->pid;
 
+    lock_release(curproc->p_mutex);
     return 0;
 }
 
