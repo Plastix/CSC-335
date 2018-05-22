@@ -81,6 +81,10 @@ int local_table_add_file(Local_File_Table *table, File *file, int flags, int *re
 
 File_Desc *local_table_get(Local_File_Table *table, int file_handle);
 
+int local_table_close_file(Local_File_Table *table, int file_handle);
+
+int local_table_close_all(Local_File_Table *table);
+
 ////////////////////////////////////
 // Global File Table Operations
 Global_File_Table *global_table_create(void);

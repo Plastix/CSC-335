@@ -46,6 +46,10 @@ struct vnode;
 // Global file table
 // Initialized in proc_bootstrap()
 Global_File_Table *global_file_table;
+// Global STD file descriptors
+File_Desc *stdin_fd;
+File_Desc *stdout_fd;
+File_Desc *stderr_fd;
 
 #define MAX_PROCS 128
 #define MAX_CHILDS 32
