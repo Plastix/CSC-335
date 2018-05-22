@@ -58,8 +58,14 @@ struct proc *kproc;
 /*
  * Create a proc structure.
  */
-static struct proc *proc_create(const char *name)
+struct proc *proc_create(const char *name)
 {
+    KASSERT(name != NULL);
+
+    if (GLOBAL_PROC_COUNT >= MAX_PROCS) {
+        return NULL;
+    }
+
 	struct proc *proc;
 
 	proc = kmalloc(sizeof(*proc));
@@ -90,7 +96,14 @@ static struct proc *proc_create(const char *name)
 	/* VFS fields */
 	proc->p_cwd = NULL;
 
-	proc->pid = GLOBAL_PROC_COUNT + 1;
+	for (int i=0; i<MAX_PROCS; i++) {
+	    if (Global_Proc_Table[i] == NULL) {
+	        Global_Proc_Table[i] = proc;
+	        proc->pid = (unsigned) i;
+            break;
+	    }
+	}
+	GLOBAL_PROC_COUNT++;
 
 	proc->return_value = 0;
 
@@ -222,21 +235,29 @@ void proc_destroy(struct proc *proc)
 void
 proc_bootstrap(void)
 {
+    /*
+     * Init Global Proc Table
+     */
+    for (int i=0; i<MAX_PROCS; i++) {
+        Global_Proc_Table[i] = NULL;
+    }
+    GPT_lock = lock_create("global_proc_table_lock");
+    /*
+     * Init Global File Table
+     */
     global_file_table = global_table_create();
     if (global_file_table == NULL) {
         panic("Global file table creation failed!");
     }
 
+    /*
+     * Create initial kernel proc
+     */
 	kproc = proc_create("[kernel]");
 	if (kproc == NULL) {
 		panic("proc_create for kproc failed\n");
 	}
 
-	for (int i=0; i<MAX_PROCS; i++) {
-	    Global_Proc_Table[i] = NULL;
-	}
-	Global_Proc_Table[0] = kproc;
-	GLOBAL_PROC_COUNT = 1;
 }
 
 /*

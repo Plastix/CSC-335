@@ -15,9 +15,8 @@
 
 int sys_fork(struct trapframe *tf, pid_t *pid) {
 
-    struct addrspace *new_addrspace;
     struct proc *new_proc;
-//    struct trapframe *child_tf;
+    struct trapframe *new_tf;
     int result;
 
     /*
@@ -37,48 +36,44 @@ int sys_fork(struct trapframe *tf, pid_t *pid) {
     /*
      * CREATE A NEW PROCESS STRUCT
      */
-    new_proc = kmalloc(sizeof(struct proc));
-    if (new_proc == NULL) {
-        return ENOMEM;
-    }
-    // Get the new PID
-    new_proc->pid = GLOBAL_PROC_COUNT + 1;
-    // Keep old proc's cwd
+    new_proc = proc_create("user_proc");
+
+    /*
+     * KEEP PARENT CWD
+     */
     new_proc->p_cwd = curproc->p_cwd;
 
     /*
      * COPY ADDRESS SPACE
      */
-    new_addrspace = kmalloc(sizeof(struct addrspace));
-    if (new_addrspace == NULL) {
-        kfree(new_proc);
-        return ENOMEM;
-    }
-    as_copy(curproc->p_addrspace, &new_addrspace);
-    new_proc->p_addrspace = new_addrspace;
-
+    as_copy(curproc->p_addrspace, &new_proc->p_addrspace);
 
     /*
      * COPY PARENT'S TRAPFRAME
      */
-//    child_tf = kmalloc(sizeof(struct trapframe));
-//    if (child_tf == NULL) {
-//        kfree(new_proc->p_addrspace);
-//        kfree(new_proc);
-//        return ENOMEM;
-//    }
-//    memcpy(child_tf, tf, sizeof(struct trapframe));
+    new_tf = kmalloc(sizeof(struct trapframe));
+    if (new_tf == NULL) {
+        kfree(new_proc->p_addrspace);
+        kfree(new_proc);
+        return ENOMEM;
+    }
+    memcpy(new_tf, tf, sizeof(struct trapframe));
 
-    // TODO (James): Copy local file table
-
-    result = thread_fork("user_proc_thread", new_proc, enter_forked_process, tf, new_proc->pid);
+    result = thread_fork("user_proc_thread", new_proc, enter_forked_process, new_tf, new_proc->pid);
 
     if (result) {
 
         return result;
     }
 
-    *pid = curproc->pid;
+    curproc->p_num_childs++;
+    for (int i=0; i<MAX_CHILDS; i++) {
+        if (curproc->p_childs[i] == NULL) {
+            curproc->p_childs[i] = new_proc;
+            break;
+        }
+    }
+    *pid = new_proc->pid;
 
     return 0;
 }
