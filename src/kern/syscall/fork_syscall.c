@@ -17,7 +17,7 @@ int sys_fork(struct trapframe *tf, pid_t *pid) {
 
     struct addrspace *new_addrspace;
     struct proc *new_proc;
-    struct trapframe *child_tf;
+//    struct trapframe *child_tf;
     int result;
 
     /*
@@ -61,17 +61,17 @@ int sys_fork(struct trapframe *tf, pid_t *pid) {
     /*
      * COPY PARENT'S TRAPFRAME
      */
-    child_tf = kmalloc(sizeof(struct trapframe));
-    if (child_tf == NULL) {
-        kfree(new_proc->p_addrspace);
-        kfree(new_proc);
-        return ENOMEM;
-    }
-    memcpy(child_tf, tf, sizeof(struct trapframe));
+//    child_tf = kmalloc(sizeof(struct trapframe));
+//    if (child_tf == NULL) {
+//        kfree(new_proc->p_addrspace);
+//        kfree(new_proc);
+//        return ENOMEM;
+//    }
+//    memcpy(child_tf, tf, sizeof(struct trapframe));
 
     // TODO (James): Copy local file table
 
-    result = thread_fork("user_proc_thread", new_proc, enter_forked_process, child_tf, new_proc->pid);
+    result = thread_fork("user_proc_thread", new_proc, enter_forked_process, tf, new_proc->pid);
 
     if (result) {
 
@@ -87,7 +87,9 @@ int sys_fork(struct trapframe *tf, pid_t *pid) {
  * Implementation of a helper process for sys_fork()
  */
 void enter_forked_process(void *tf, unsigned long pid) {
-    struct trapframe *new_tf = (struct trapframe *) tf;
+
+    struct trapframe *new_tf = kmalloc(sizeof(struct trapframe));
+    memcpy(new_tf, tf, sizeof(struct trapframe));
     (void) pid;
 
 
