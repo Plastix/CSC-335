@@ -88,23 +88,22 @@ int sys_fork(struct trapframe *tf, pid_t *pid) {
  */
 void enter_forked_process(void *tf, unsigned long pid) {
 
-    struct trapframe *new_tf = kmalloc(sizeof(struct trapframe));
-    memcpy(new_tf, tf, sizeof(struct trapframe));
+    struct trapframe new_tf = *((struct trapframe *) tf);
     (void) pid;
 
 
 
     // Based on usage in the syscall method of syscall.c, these should work:
     // Register v0 in the trapframe is the syscall value OR the return value, in this case
-    new_tf->tf_v0 = 0;
+    new_tf.tf_v0 = 0;
 
     // Apparently register a3 in the trapframe is used for error checking, so this indicates no error
-    new_tf->tf_a3 = 0;
+    new_tf.tf_a3 = 0;
 
     // Increment the program counter so that we don't trap forever
-    new_tf->tf_epc += 4;
+    new_tf.tf_epc += 4;
 
-    mips_usermode(new_tf);
+    mips_usermode(&new_tf);
 
     // This theoretically shouldn't be reachable
     KASSERT(1 == 2);
