@@ -60,6 +60,50 @@ static File_Desc *file_desc_create(File *file, int flags, int standard) {
     return f;
 }
 
+static void file_destroy(File *file) {
+    KASSERT(file != NULL);
+
+    // Don't close STD files
+    if (!file->is_standard) {
+        // We don't know our index here so we need to do a scan
+        // Sorry James
+        lock_acquire(global_file_table->lk);
+
+        struct vnode *vn = file->node;
+
+        if (vn != NULL && vn->vn_refcount == 1) {
+
+            for (int i = 0; i < MAX_GLOBAL_TABLE_SIZE; i++) {
+                if (global_file_table->files[i] == file) {
+                    KASSERT(vn != NULL);
+
+                    vfs_close(vn);
+                    file->node = NULL;
+                    lock_destroy(file->lk);
+                    global_file_table->files[i] = NULL;
+
+                    break;
+                }
+            }
+        }
+
+        lock_release(global_file_table->lk);
+    }
+}
+
+static void file_desc_destroy(File_Desc *file_desc) {
+    KASSERT(file_desc != NULL);
+
+    File *file = file_desc->file;
+
+    if (file != NULL) {
+        file_destroy(file);
+    }
+
+    lock_destroy(file_desc->lk);
+    kfree(file_desc);
+}
+
 ////////////////////////////////////
 // Local File Table Operations
 ////////////////////////////////////
@@ -143,6 +187,52 @@ File_Desc *local_table_get(Local_File_Table *table, int file_handle) {
     return desc;
 }
 
+int local_table_close_file(Local_File_Table *table, int file_handle) {
+    KASSERT(table != NULL);
+
+    if (file_handle < 0 || file_handle >= MAX_LOCAL_TABLE_SIZE) {
+        return EBADF;
+    }
+
+    lock_acquire(table->lk);
+
+    File_Desc *desc = table->files[file_handle];
+    if (desc == NULL) {
+        lock_release(table->lk);
+        return EBADF;
+    }
+
+    table->files[file_handle] = NULL;
+    table->num_open_files--;
+    file_desc_destroy(desc);
+
+    lock_release(table->lk);
+
+    return 0;
+}
+
+int local_table_close_all(Local_File_Table *table) {
+    KASSERT(table != NULL);
+
+    lock_acquire(table->lk);
+
+    for (int i = 0; i < MAX_LOCAL_TABLE_SIZE; i++) {
+        File_Desc *f = table->files[i];
+
+        if (f != NULL) {
+            file_desc_destroy(f);
+        }
+
+        table->files[i] = NULL;
+    }
+
+    table->num_open_files = 0;
+
+    lock_release(table->lk);
+
+    return 0;
+
+}
 
 ////////////////////////////////////
 // Global File Table Operations
