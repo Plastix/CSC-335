@@ -9,15 +9,6 @@
 
 // Internal Helper functions
 
-static File *global_table_get_standard(int file_handle) {
-
-    lock_acquire(global_file_table->lk);
-    File *desc = global_file_table->files[file_handle];
-    lock_release(global_file_table->lk);
-
-    return desc;
-}
-
 static File *file_create(struct vnode *node, bool is_standard) {
     File *f = kmalloc(sizeof(File));
     if (f == NULL) {
@@ -64,26 +55,34 @@ static File_Desc *file_desc_create(File *file, int flags, int standard) {
 static void file_desc_destroy(File_Desc *file_desc) {
     KASSERT(file_desc != NULL);
 
+    // Don't deallocate the global STDIN/OUT/ERR objects
+    if (file_desc == stdin_fd || file_desc == stdout_fd || file_desc == stderr_fd) {
+        return;
+    }
+
     // Get the file the global file table
     File *file = file_desc->file;
-
     KASSERT(file != NULL);
 
     // Don't remove STDIN/STDOUT global files
     if (!file->is_standard) {
-        // We don't know our index here so we need to do a scan
-        // Sorry James
         lock_acquire(global_file_table->lk);
 
         struct vnode *vn = file->node;
         KASSERT(vn != NULL);
 
+        // Check if vnode refcount is 1 since vfs_close() will decrement and deallocate itself
         if (vn->vn_refcount == 1) {
+            // NUll out slot in global file table
+            // We don't know our index here so we need to do a scan
+            // Sorry James
             for (int i = 0; i < MAX_GLOBAL_TABLE_SIZE; i++) {
                 if (global_file_table->files[i] == file) {
                     global_file_table->files[i] = NULL;
+                    global_file_table->num_open_files--;
                     vfs_close(vn);
                     lock_destroy(file->lk);
+                    kfree(file);
                     break;
                 }
             }
@@ -91,13 +90,14 @@ static void file_desc_destroy(File_Desc *file_desc) {
             lock_destroy(file_desc->lk);
             kfree(file_desc);
         } else {
+            // Decrement vnode ref count
+            // Don't deallocate file descriptor resources
             vfs_close(vn);
         }
-    } else {
-        // TODO (Aidan) Handle the case when you are removing STDIN
+
+        lock_release(global_file_table->lk);
     }
 
-    lock_release(global_file_table->lk);
 }
 
 ////////////////////////////////////
@@ -121,18 +121,11 @@ Local_File_Table *local_table_create() {
         t->files[i] = NULL;
     }
 
-    t->files[0] = file_desc_create(global_table_get_standard(STDIN_FILENO), O_RDONLY, STDIN_FILENO);
-    t->files[1] = file_desc_create(global_table_get_standard(STDOUT_FILENO), O_WRONLY, STDOUT_FILENO);
-    t->files[2] = file_desc_create(global_table_get_standard(STDERR_FILENO), O_WRONLY, STDIN_FILENO);
-
+    // Set first three open files to global STD file descriptors
+    t->files[0] = stdin_fd;
+    t->files[1] = stdout_fd;
+    t->files[2] = stderr_fd;
     t->num_open_files = 3;
-
-    // Creating STDIN/STDOUT/STDERR failed
-    if (t->files[0] == NULL || t->files[1] == NULL || t->files[2] == NULL) {
-        kfree(t->lk);
-        kfree(t);
-        return NULL;
-    }
 
     return t;
 }
@@ -255,14 +248,24 @@ Global_File_Table *global_table_create() {
     for (int i = 0; i < MAX_GLOBAL_TABLE_SIZE; ++i) {
         // Create special global files for STD*
         if (i >= 0 && i < 3) {
-            t->files[i] = file_create(NULL, true);
-            // If we failed at creating, panic
-            if (t->files[i] == NULL) {
+            File *file = file_create(NULL, true);
+            t->files[i] = file;
+
+            // If we failed at creating STD*, panic
+            if (file == NULL) {
                 panic("Failed to create STDIN/STDOUT/STDERR");
             }
         } else {
             t->files[i] = NULL;
         }
+    }
+
+    stdin_fd = file_desc_create(t->files[STDIN_FILENO], O_RDONLY, STDIN_FILENO);
+    stdout_fd = file_desc_create(t->files[STDOUT_FILENO], O_WRONLY, STDOUT_FILENO);
+    stderr_fd = file_desc_create(t->files[STDERR_FILENO], O_WRONLY, STDERR_FILENO);
+
+    if (stderr_fd == NULL || stdout_fd == NULL || stderr_fd == NULL) {
+        panic("Failed to create STDIN/STDOUT/STDERR");
     }
 
     t->num_open_files = 3;
