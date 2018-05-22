@@ -131,8 +131,10 @@ int local_table_add_file(Local_File_Table *table, File *file, int flags, int *re
 
 File_Desc *local_table_get(Local_File_Table *table, int file_handle) {
     KASSERT(table != NULL);
-    KASSERT(file_handle >= 0);
-    KASSERT(file_handle < MAX_LOCAL_TABLE_SIZE);
+
+    if (file_handle < 0 || file_handle >= table->num_open_files) {
+        return NULL;
+    }
 
     lock_acquire(table->lk);
     File_Desc *desc = table->files[file_handle];

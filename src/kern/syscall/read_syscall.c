@@ -44,7 +44,7 @@ static int read_from_disk(File_Desc *desc, userptr_t buf, size_t size, size_t *r
         // Release both locks, must be in this order
         lock_release(file->lk);
         lock_release(desc->lk);
-        return EIO;
+        return err;
     }
 
     size_t bytes_copied = size - ku.uio_resid;
@@ -56,7 +56,7 @@ static int read_from_disk(File_Desc *desc, userptr_t buf, size_t size, size_t *r
         // Release both locks, must be in this order
         lock_release(file->lk);
         lock_release(desc->lk);
-        return EIO;
+        return err;
     }
 
     // Update seek location
@@ -116,6 +116,10 @@ static int read_stdin(File_Desc *desc, userptr_t buf, size_t size, size_t *ret) 
 }
 
 int sys_read(int filehandle, userptr_t buf, size_t size, size_t *ret) {
+    if (buf == NULL) {
+        return EFAULT;
+    }
+
     Local_File_Table *file_table = curproc->local_file_table;
 
     // Get the file descriptor object from the local file table

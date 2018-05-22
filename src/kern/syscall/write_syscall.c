@@ -15,6 +15,7 @@ static int write_to_disk(File_Desc *desc, const_userptr_t buf, size_t size, size
     lock_acquire(desc->lk);
 
     if (desc->flags != O_WRONLY || desc->flags != O_RDWR) {
+        *ret = (size_t) -1;
         lock_release(desc->lk);
         return EBADF;
     }
@@ -23,6 +24,7 @@ static int write_to_disk(File_Desc *desc, const_userptr_t buf, size_t size, size
 
     char *k_buffer = kmalloc(size);
     if (k_buffer == NULL) {
+        *ret = (size_t) -1;
         lock_release(desc->lk);
         return ENOMEM;
     }
@@ -36,11 +38,10 @@ static int write_to_disk(File_Desc *desc, const_userptr_t buf, size_t size, size
     err = copyin(buf, k_buffer, size);
     if (err) {
         *ret = (size_t) -1;
-
         // Release both locks, must be in this order
         lock_release(file->lk);
         lock_release(desc->lk);
-        return EIO;
+        return err;
     }
 
     uio_kinit(&iov, &ku, k_buffer, size, desc->seek_location, UIO_READ);
@@ -49,11 +50,10 @@ static int write_to_disk(File_Desc *desc, const_userptr_t buf, size_t size, size
     // Reading file failed somehow
     if (err) {
         *ret = (size_t) -1;
-
         // Release both locks, must be in this order
         lock_release(file->lk);
         lock_release(desc->lk);
-        return EIO;
+        return err;
     }
 
     size_t bytes_copied = size - ku.uio_resid;
@@ -77,6 +77,7 @@ static int write_std(File_Desc *desc, const_userptr_t buf, size_t size, size_t *
 
     char *bytes = kmalloc(size);
     if (bytes == NULL) {
+        *ret = (size_t) -1;
         lock_release(f->lk);
         lock_release(desc->lk);
         return ENOMEM;
@@ -84,6 +85,7 @@ static int write_std(File_Desc *desc, const_userptr_t buf, size_t size, size_t *
 
     int err = copyin(buf, bytes, size);
     if (err) {
+        *ret = (size_t) -1;
         lock_release(f->lk);
         lock_release(desc->lk);
         return err;
@@ -105,6 +107,10 @@ static int write_std(File_Desc *desc, const_userptr_t buf, size_t size, size_t *
 }
 
 int sys_write(int filehandle, const_userptr_t buf, size_t size, size_t *ret) {
+    if (buf == NULL) {
+        return EFAULT;
+    }
+
     Local_File_Table *file_table = curproc->local_file_table;
 
     // Get the file descriptor object from the local file table
