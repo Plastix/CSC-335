@@ -21,7 +21,7 @@ static int read_from_disk(File_Desc *desc, userptr_t buf, size_t size, size_t *r
 
     File *file = desc->file;
 
-    // Acquire the read/write lock protecting the vnode
+    // Acquire the readls/write lock protecting the vnode
     lock_acquire(file->lk);
     char k_buffer[size];
     struct iovec iov;
@@ -74,12 +74,16 @@ static int read_stdin(File_Desc *desc, userptr_t buf, size_t size, size_t *ret) 
     size_t read = 0;
 
     while (read < size) {
-        int byte = getch();
-        bytes[read] = (char) byte;
-        read++;
+        char in = (char) getch();
 
-        if (byte == '\n' || byte == '\r') {
+        if (in == '\n' || in == '\r') {
+            bytes[read] = '\n';
+            read++;
+            putch('\n');
             break;
+        } else {
+            bytes[read] = in;
+            read++;
         }
     }
 
