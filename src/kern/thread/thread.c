@@ -115,9 +115,7 @@ thread_checkstack(struct thread *thread)
  * Create a thread. This is used both to create a first thread
  * for each CPU and to create subsequent forked threads.
  */
-static
-struct thread *
-thread_create(const char *name)
+struct thread *thread_create(const char *name)
 {
 	struct thread *thread;
 

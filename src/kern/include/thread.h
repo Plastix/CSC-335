@@ -151,6 +151,9 @@ void thread_shutdown(void);
  * general safe to refer to it as the new thread may exit and
  * disappear at any time without notice.
  */
+
+struct thread *thread_create(const char *name);
+
 int thread_fork(const char *name, struct proc *proc,
                 void (*func)(void *, unsigned long),
                 void *data1, unsigned long data2);

@@ -94,14 +94,25 @@ static struct proc *proc_create(const char *name)
 	}
 
 	proc->p_mutex = lock_create("proc_lock");
+	if (proc->p_mutex == NULL) {
+	    kfree(proc->p_name);
+	    kfree(proc);
+        return NULL;
+	}
 
-	proc->p_num_childs = 0;
+    proc->waiting = cv_create("proc_cv");
+    if (proc->waiting == NULL) {
+        lock_destroy(proc->p_mutex);
+        kfree(proc->p_name);
+        kfree(proc);
+        return NULL;
+    }
+
+    proc->p_num_childs = 0;
 
 	for (int i=0; i<MAX_CHILDS; i++) {
 	    proc->p_childs[i] = NULL;
 	}
-
-	proc->waiting = cv_create("proc_cv");
 
 	return proc;
 }
@@ -267,8 +278,11 @@ proc_addthread(struct proc *proc, struct thread *t)
 
 	KASSERT(t->t_proc == NULL);
 
+	KASSERT(proc->p_thread == NULL);
+
 	spinlock_acquire(&proc->p_lock);
 	proc->p_numthreads++;
+	proc->p_thread = t;
 	spinlock_release(&proc->p_lock);
 
 	spl = splhigh();
