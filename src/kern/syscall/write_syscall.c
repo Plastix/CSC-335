@@ -21,13 +21,18 @@ static int write_to_disk(File_Desc *desc, const_userptr_t buf, size_t size, size
 
     File *file = desc->file;
 
-    // Acquire the read/write lock protecting the vnode
-    lock_acquire(file->lk);
-    char k_buffer[size];
+    char *k_buffer = kmalloc(size);
+    if (k_buffer == NULL) {
+        lock_release(desc->lk);
+        return ENOMEM;
+    }
+
     struct iovec iov;
     struct uio ku;
     int err;
 
+    // Acquire the read/write lock protecting the vnode
+    lock_acquire(file->lk);
     err = copyin(buf, k_buffer, size);
     if (err) {
         *ret = (size_t) -1;
@@ -70,7 +75,12 @@ static int write_std(File_Desc *desc, const_userptr_t buf, size_t size, size_t *
     File *f = desc->file;
     lock_acquire(f->lk);
 
-    char bytes[size];
+    char *bytes = kmalloc(size);
+    if (bytes == NULL) {
+        lock_release(f->lk);
+        lock_release(desc->lk);
+        return ENOMEM;
+    }
 
     int err = copyin(buf, bytes, size);
     if (err) {
