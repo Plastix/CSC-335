@@ -35,6 +35,9 @@
 
 struct trapframe; /* from <machine/trapframe.h> */
 
+#define MAX_FILENAME_LEN 128
+#define MAX_FILENAME_SIZE_T (sizeof(char) * MAX_FILENAME_LEN)
+
 /*
  * The system call dispatcher.
  */
@@ -46,11 +49,11 @@ void syscall(struct trapframe *tf);
  */
 
 /* Helper for fork(). You write this. */
-void enter_forked_process(void *tf, unsigned long pid);
+void enter_forked_process(struct trapframe *tf);
 
 /* Enter user mode. Does not return. */
 __DEAD void enter_new_process(int argc, userptr_t argv, userptr_t env,
-		       vaddr_t stackptr, vaddr_t entrypoint);
+                              vaddr_t stackptr, vaddr_t entrypoint);
 
 
 /*
@@ -61,7 +64,15 @@ int sys_reboot(int code);
 
 int sys___time(userptr_t user_seconds, userptr_t user_nanoseconds);
 
-int sys_fork(struct trapframe *tf, pid_t *pid);
+void sys__exit(int code);
+
+int sys_open(const_userptr_t filename, int flags, int *fd);
+
+int sys_read(int filehandle, userptr_t buf, size_t size, size_t *ret);
+
+int sys_write(int filehandle, const_userptr_t buf, size_t size, size_t *ret);
+
+pid_t sys_fork(void);
 
 int sys_execv(const char *prog, char *const *args);
 

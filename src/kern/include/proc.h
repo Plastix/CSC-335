@@ -37,10 +37,15 @@
  */
 
 #include <spinlock.h>
+#include <filetable.h>
 
 struct addrspace;
 struct thread;
 struct vnode;
+
+// Global file table
+// Initialized in proc_bootstrap()
+Global_File_Table *global_file_table;
 
 #define MAX_PROCS 128
 #define MAX_CHILDS 32
@@ -97,6 +102,8 @@ struct proc {
     struct proc *p_childs[MAX_CHILDS];
 
     struct cv *waiting;
+
+    Local_File_Table *local_file_table;
 
     /*
      * TODO: Add more data:
