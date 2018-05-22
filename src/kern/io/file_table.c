@@ -6,7 +6,6 @@
 #include <kern/errno.h>
 #include <kern/unistd.h>
 #include <kern/fcntl.h>
-#include <filetable.h>
 
 // Internal Helper functions
 
