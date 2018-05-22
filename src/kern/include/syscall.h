@@ -57,7 +57,7 @@ __DEAD void enter_new_process(int argc, userptr_t argv, userptr_t env,
 
 
 /*
- * Prototypes for IN-KERNEL entry points for system call implementations.
+ * Prototypes for IN-KERNEL entry points for u call implementations.
  */
 
 int sys_reboot(int code);
@@ -68,9 +68,9 @@ void sys__exit(int code);
 
 int sys_open(const_userptr_t filename, int flags, int *fd);
 
-ssize_t sys_read(int filehandle, userptr_t buf, size_t size);
+int sys_read(int filehandle, userptr_t buf, size_t size, size_t *ret);
 
-ssize_t sys_write(int filehandle, const_userptr_t buf, size_t size);
+int sys_write(int filehandle, const_userptr_t buf, size_t size, size_t *ret);
 
 pid_t sys_fork(void);
 

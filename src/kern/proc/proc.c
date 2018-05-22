@@ -72,6 +72,15 @@ proc_create(const char *name)
 		return NULL;
 	}
 
+    if (strcmp("[kernel]", name) != 0) {
+        proc->local_file_table = local_table_create();
+        if (proc->local_file_table == NULL) {
+            kfree(proc->p_name);
+            kfree(proc);
+            return NULL;
+        }
+    }
+
 	proc->p_numthreads = 0;
 	spinlock_init(&proc->p_lock);
 
@@ -181,15 +190,15 @@ proc_destroy(struct proc *proc)
 void
 proc_bootstrap(void)
 {
-	kproc = proc_create("[kernel]");
-	if (kproc == NULL) {
-		panic("proc_create for kproc failed\n");
-	}
-
     global_file_table = global_table_create();
     if (global_file_table == NULL) {
         panic("Global file table creation failed!");
     }
+
+	kproc = proc_create("[kernel]");
+	if (kproc == NULL) {
+		panic("proc_create for kproc failed\n");
+	}
 }
 
 /*
