@@ -1,11 +1,9 @@
-#include <filetable.h> /*this adds the function prototypes for this file */
-#include <kern/errno.h>	/*for EINVAL, other errors */
-#include <types.h>  /* for types like off_t, size_t, etc*/
-#include <vnode.h>  /*for all the VOP methods */
-#include <lib.h>  /* for kmalloc, fuctions etc */
-#include <kern/stat.h> /* for getting the file size through VOP_STAT */
-#include <current.h> /* for the curthread variable */
-#include <kern/seek.h> /* for seek operation lseek() */
+#include <filetable.h>
+#include <kern/errno.h>
+#include <types.h>
+#include <kern/stat.h> 
+#include <current.h>
+#include <kern/seek.h>
 #include <synch.h>
 #include <proc.h>
 #include <vfs.h>
@@ -19,6 +17,7 @@ int sys_lseek(int fd, off_t pos, int whence, off_t * retVal){
     off_t currentPosition;
     off_t endPosition;
     off_t posUpdate;
+    struct stat st;
 
     lock_acquire(curproc->p_mutex);
 
@@ -41,7 +40,7 @@ int sys_lseek(int fd, off_t pos, int whence, off_t * retVal){
             posUpdate = pos;
             if ((err = VOP_ISSEEKABLE(fdesc->file->node)) != 0) {
                 lock_release(fdesc->lk);
-                return ESPIPE;	// SEEK fails
+                return err;	// SEEK fails
             }
             fdesc->seek_location = posUpdate;
             *retVal = fdesc->seek_location;
@@ -53,19 +52,24 @@ int sys_lseek(int fd, off_t pos, int whence, off_t * retVal){
 
             if (posUpdate < 0) {  // ?? Any up boundary ??
                 lock_release(fdesc->lk);
-                return EINVAL;
+                return EINVAL;  /* Invalid argument */
             }
 
             if ((err = VOP_ISSEEKABLE(fdesc->file->node)) != 0) {
                 lock_release(fdesc->lk);
-                return ESPIPE;
+                return err;
             }
             fdesc->seek_location = posUpdate;
             *retVal = fdesc->seek_location;
             break;
 
         case SEEK_END:
-            endPosition = 0; // TODO (Violet): the position of end-of-file ??
+            if (err = VOP_STAT(fdesc->file->node, &st) != 0) {
+                lock_release(fdesc->lk);
+                return err;
+            }
+
+            endPosition = st.st_size;
             posUpdate = endPosition + pos;
 
             if (posUpdate < 0) {
@@ -75,7 +79,7 @@ int sys_lseek(int fd, off_t pos, int whence, off_t * retVal){
 
             if ((err = VOP_ISSEEKABLE(fdesc->file->node)) != 0) {
                 lock_release(fdesc->lk);
-                return ESPIPE;
+                return err;
             }
 
             fdesc->seek_location = posUpdate; // any difference when pos is negative, zero, or positive ??
