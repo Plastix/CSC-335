@@ -7,6 +7,7 @@
 #include <proc.h>
 #include <synch.h>
 
+
 /* chdir() syscall */
 
 int sys_chdir(const_userptr_t pathName){
@@ -20,7 +21,7 @@ int sys_chdir(const_userptr_t pathName){
 		return EFAULT;
 	}
 
-	if ((err =  copyinstr(pathName, curthread->t_proc->p_cwd, MAX_FILENAME_LEN, &actual) != 0)){
+	if ((err =  copyinstr(pathName, pathNameInput, MAX_FILENAME_LEN, &actual) != 0)){
 		return err;
 	}
 

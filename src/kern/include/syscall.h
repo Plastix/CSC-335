@@ -79,20 +79,16 @@ int sys_execv(const char *prog, char *const *args);
 pid_t sys_waitpid(pid_t pid, int *returncode, int flags);
 
 
-/* sys_close function  */
+
 int sys_close(int fd);
 
-/* sys_dup2 function  */
 int sys_dup2(int oldfd, int newfd, int * retval);
 
-/* sys_lseek function  */
-int sys_lseek(int fd, off_t pos, int whence, off_t * retVal64);
+int sys_lseek(int fd, off_t pos, int whence, off_t * retVal);
 
-/* sys_chdir function  */
 int sys_chdir(const_userptr_t pathname);
 
-/* sys_getcwd function  */
-int sys_getcwd(userptr_t buf, int * retval);
+int sys____getcwd(userptr_t buf, int * retval);
 
 
 #endif /* _SYSCALL_H_ */

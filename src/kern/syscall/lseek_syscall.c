@@ -10,6 +10,7 @@
 #include <proc.h>
 #include <vfs.h>
 
+
 /* lseek() syscall */
 
 int sys_lseek(int fd, off_t pos, int whence, off_t * retVal){
@@ -19,50 +20,48 @@ int sys_lseek(int fd, off_t pos, int whence, off_t * retVal){
     off_t endPosition;
     off_t posUpdate;
 
-    /* check if the file descriptor passed in is valid */
-    if (fd >= MAX_LOCAL_TABLE_SIZE || fd < 0) {	// fd is out of bounds of the file table
-        return EBADF;
-    }
+    lock_acquire(curproc->p_mutex);
 
-    struct File fdesc = curproc curthread->t_proc->local_file_table[fd];
+    File_Desc * fdesc = local_table_get(curproc->local_file_table, fd);
 
     if (fdesc == NULL) {
         return EBADF;
     }
 
     /* synchronize the process */
-    lock_acquire(fdesc->lock);
+    lock_acquire(fdesc->lk);
+
     switch(whence) {	// logic for different cases
         case SEEK_SET:
             if (pos < 0) {
-                lock_release(fdesc->lock);
+                lock_release(fdesc->lk);
                 return EINVAL;	// seek position is negative
             }
 
             posUpdate = pos;
-            if ((err = VOP_ISSEEKABLE(fdesc->vn)) != 0) {
-                lock_release(fdesc->lock);
+            if ((err = VOP_ISSEEKABLE(fdesc->file->node)) != 0) {
+                lock_release(fdesc->lk);
                 return ESPIPE;	// SEEK fails
             }
-            fdesc->offset = posUpdate;
-            *retVal = fdesc->offset;
+            fdesc->seek_location = posUpdate;
+            *retVal = fdesc->seek_location;
             break;
 
         case SEEK_CUR:
-            currentPosition = fdesc->offset;
+            currentPosition = fdesc->seek_location;
             posUpdate = currentPosition + pos;
 
             if (posUpdate < 0) {  // ?? Any up boundary ??
-                lock_release(fdesc->lock);
+                lock_release(fdesc->lk);
                 return EINVAL;
             }
 
-            if ((err = VOP_ISSEEKABLE(fdesc->vn)) != 0) {
-                lock_release(fdesc->lock);
+            if ((err = VOP_ISSEEKABLE(fdesc->file->node)) != 0) {
+                lock_release(fdesc->lk);
                 return ESPIPE;
             }
-            fdesc->offset = posUpdate;
-            *retVal = fdesc->offset;
+            fdesc->seek_location = posUpdate;
+            *retVal = fdesc->seek_location;
             break;
 
         case SEEK_END:
@@ -70,24 +69,27 @@ int sys_lseek(int fd, off_t pos, int whence, off_t * retVal){
             posUpdate = endPosition + pos;
 
             if (posUpdate < 0) {
-                lock_release(fdesc->lock);
+                lock_release(fdesc->lk);
                 return EINVAL;
             }
 
-            if ((err = VOP_ISSEEKABLE(fdesc->vn)) != 0) {
-                lock_release(fdesc->lock);
+            if ((err = VOP_ISSEEKABLE(fdesc->file->node)) != 0) {
+                lock_release(fdesc->lk);
                 return ESPIPE;
             }
 
-            fdesc->offset = posUpdate; // any difference when pos is negative, zero, or positive ??
+            fdesc->seek_location = posUpdate; // any difference when pos is negative, zero, or positive ??
 
-            *retVal = fdesc->offset;
+            *retVal = fdesc->seek_location;
             break;
 
         default:
             return EINVAL;
     }
-    lock_release(fdesc->lock);
+
+    lock_release(fdesc->lk);
+
+    lock_release(curproc->p_mutex);
 
     return 0;
 
