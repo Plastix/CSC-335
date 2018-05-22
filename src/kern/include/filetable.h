@@ -1,3 +1,5 @@
+#ifndef _FILETABLE
+#define _FILETABLE
 
 #include <types.h>
 #include <vnode.h>
@@ -94,6 +96,4 @@ Global_File_Table *global_table_create(void);
 int global_table_open_file(char *filename, int flags, File **ret);
 
 
-
-// TODO (Aidan) Add monitor methods
-
+#endif // _FILETABLE

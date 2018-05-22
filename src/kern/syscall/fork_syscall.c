@@ -11,6 +11,7 @@
 #include <synch.h>
 #include <thread.h>
 #include <mips/trapframe.h>
+#include <filetable.h>
 //#include "../arch/mips/thread/switchframe.h"
 
 int sys_fork(struct trapframe *tf, pid_t *pid) {
@@ -47,6 +48,11 @@ int sys_fork(struct trapframe *tf, pid_t *pid) {
      * COPY ADDRESS SPACE
      */
     as_copy(curproc->p_addrspace, &new_proc->p_addrspace);
+
+    /*
+     * COPY PARENT'S LOCAL FILE TABLE
+     */
+    local_table_copy(curproc->local_file_table, new_proc->local_file_table);
 
     /*
      * COPY PARENT'S TRAPFRAME
