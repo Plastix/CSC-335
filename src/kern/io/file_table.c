@@ -9,15 +9,6 @@
 
 // Internal Helper functions
 
-static File *global_table_get_standard(int file_handle) {
-
-    lock_acquire(global_file_table->lk);
-    File *desc = global_file_table->files[file_handle];
-    lock_release(global_file_table->lk);
-
-    return desc;
-}
-
 static File *file_create(struct vnode *node, bool is_standard) {
     File *f = kmalloc(sizeof(File));
     if (f == NULL) {
@@ -60,6 +51,55 @@ static File_Desc *file_desc_create(File *file, int flags, int standard) {
     return f;
 }
 
+// De-allocates the local file descriptor as long as the refcount is 1
+static void file_desc_destroy(File_Desc *file_desc) {
+    KASSERT(file_desc != NULL);
+
+    // Don't deallocate the global STDIN/OUT/ERR objects
+    if (file_desc == stdin_fd || file_desc == stdout_fd || file_desc == stderr_fd) {
+        return;
+    }
+
+    // Get the file the global file table
+    File *file = file_desc->file;
+    KASSERT(file != NULL);
+
+    // Don't remove STDIN/STDOUT global files
+    if (!file->is_standard) {
+        lock_acquire(global_file_table->lk);
+
+        struct vnode *vn = file->node;
+        KASSERT(vn != NULL);
+
+        // Check if vnode refcount is 1 since vfs_close() will decrement and deallocate itself
+        if (vn->vn_refcount == 1) {
+            // NUll out slot in global file table
+            // We don't know our index here so we need to do a scan
+            // Sorry James
+            for (int i = 0; i < MAX_GLOBAL_TABLE_SIZE; i++) {
+                if (global_file_table->files[i] == file) {
+                    global_file_table->files[i] = NULL;
+                    global_file_table->num_open_files--;
+                    vfs_close(vn);
+                    lock_destroy(file->lk);
+                    kfree(file);
+                    break;
+                }
+            }
+
+            lock_destroy(file_desc->lk);
+            kfree(file_desc);
+        } else {
+            // Decrement vnode ref count
+            // Don't deallocate file descriptor resources
+            vfs_close(vn);
+        }
+
+        lock_release(global_file_table->lk);
+    }
+
+}
+
 ////////////////////////////////////
 // Local File Table Operations
 ////////////////////////////////////
@@ -81,18 +121,11 @@ Local_File_Table *local_table_create() {
         t->files[i] = NULL;
     }
 
-    t->files[0] = file_desc_create(global_table_get_standard(STDIN_FILENO), O_RDONLY, STDIN_FILENO);
-    t->files[1] = file_desc_create(global_table_get_standard(STDOUT_FILENO), O_WRONLY, STDOUT_FILENO);
-    t->files[2] = file_desc_create(global_table_get_standard(STDERR_FILENO), O_WRONLY, STDIN_FILENO);
-
+    // Set first three open files to global STD file descriptors
+    t->files[0] = stdin_fd;
+    t->files[1] = stdout_fd;
+    t->files[2] = stderr_fd;
     t->num_open_files = 3;
-
-    // Creating STDIN/STDOUT/STDERR failed
-    if (t->files[0] == NULL || t->files[1] == NULL || t->files[2] == NULL) {
-        kfree(t->lk);
-        kfree(t);
-        return NULL;
-    }
 
     return t;
 }
@@ -132,7 +165,7 @@ int local_table_add_file(Local_File_Table *table, File *file, int flags, int *re
 File_Desc *local_table_get(Local_File_Table *table, int file_handle) {
     KASSERT(table != NULL);
 
-    if (file_handle < 0 || file_handle >= table->num_open_files) {
+    if (file_handle < 0 || file_handle >= MAX_LOCAL_TABLE_SIZE) {
         return NULL;
     }
 
@@ -143,6 +176,57 @@ File_Desc *local_table_get(Local_File_Table *table, int file_handle) {
     return desc;
 }
 
+int local_table_close_file(Local_File_Table *table, int file_handle) {
+    KASSERT(table != NULL);
+
+    lock_acquire(table->lk);
+
+    if (file_handle < 0 || file_handle >= MAX_LOCAL_TABLE_SIZE) {
+        lock_release(table->lk);
+        return EBADF;
+    }
+
+    File_Desc *desc = table->files[file_handle];
+    if (desc == NULL) {
+        lock_release(table->lk);
+        return EBADF;
+    }
+
+    // Null out the slot in our local file table
+    table->files[file_handle] = NULL;
+    table->num_open_files--;
+
+    // Deallocate resources if needed
+    file_desc_destroy(desc);
+
+    lock_release(table->lk);
+
+    return 0;
+}
+
+int local_table_close_all(Local_File_Table *table) {
+    KASSERT(table != NULL);
+
+    lock_acquire(table->lk);
+
+    for (int i = 0; i < MAX_LOCAL_TABLE_SIZE; i++) {
+        File_Desc *f = table->files[i];
+        // Null out slot in our local file table
+        table->files[i] = NULL;
+
+        if (f != NULL) {
+            // Deallocate resources if needed
+            file_desc_destroy(f);
+        }
+    }
+
+    table->num_open_files = 0;
+
+    lock_release(table->lk);
+
+    return 0;
+
+}
 
 ////////////////////////////////////
 // Global File Table Operations
@@ -164,14 +248,24 @@ Global_File_Table *global_table_create() {
     for (int i = 0; i < MAX_GLOBAL_TABLE_SIZE; ++i) {
         // Create special global files for STD*
         if (i >= 0 && i < 3) {
-            t->files[i] = file_create(NULL, true);
-            // If we failed at creating, panic
-            if (t->files[i] == NULL) {
+            File *file = file_create(NULL, true);
+            t->files[i] = file;
+
+            // If we failed at creating STD*, panic
+            if (file == NULL) {
                 panic("Failed to create STDIN/STDOUT/STDERR");
             }
         } else {
             t->files[i] = NULL;
         }
+    }
+
+    stdin_fd = file_desc_create(t->files[STDIN_FILENO], O_RDONLY, STDIN_FILENO);
+    stdout_fd = file_desc_create(t->files[STDOUT_FILENO], O_WRONLY, STDOUT_FILENO);
+    stderr_fd = file_desc_create(t->files[STDERR_FILENO], O_WRONLY, STDERR_FILENO);
+
+    if (stderr_fd == NULL || stdout_fd == NULL || stderr_fd == NULL) {
+        panic("Failed to create STDIN/STDOUT/STDERR");
     }
 
     t->num_open_files = 3;
