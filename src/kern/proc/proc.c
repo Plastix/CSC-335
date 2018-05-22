@@ -96,15 +96,6 @@ struct proc *proc_create(const char *name)
 	/* VFS fields */
 	proc->p_cwd = NULL;
 
-	for (int i=0; i<MAX_PROCS; i++) {
-	    if (Global_Proc_Table[i] == NULL) {
-	        Global_Proc_Table[i] = proc;
-	        proc->pid = (unsigned) i;
-            break;
-	    }
-	}
-	GLOBAL_PROC_COUNT++;
-
 	proc->return_value = 0;
 
 	if (strcmp(name, "[kernel]") == 0) {
@@ -131,10 +122,27 @@ struct proc *proc_create(const char *name)
     }
 
     proc->p_num_childs = 0;
-
 	for (int i=0; i<MAX_CHILDS; i++) {
 	    proc->p_childs[i] = NULL;
 	}
+
+    /*
+     * ADD NEW PROC TO GLOBAL PROC TABLE
+     */
+    if (strcmp(name, "[kernel]") != 0) {
+        lock_acquire(GPT_lock);
+    }
+    for (int i=0; i<MAX_PROCS; i++) {
+        if (Global_Proc_Table[i] == NULL) {
+            Global_Proc_Table[i] = proc;
+            proc->pid = (unsigned) i;
+            break;
+        }
+    }
+    if (strcmp(name, "[kernel]") != 0) {
+        lock_release(GPT_lock);
+    }
+    GLOBAL_PROC_COUNT++;
 
 	return proc;
 }
