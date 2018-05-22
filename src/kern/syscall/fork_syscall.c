@@ -11,7 +11,7 @@
 #include <synch.h>
 #include <thread.h>
 #include <mips/trapframe.h>
-#include "../arch/mips/thread/switchframe.h"
+//#include "../arch/mips/thread/switchframe.h"
 
 int sys_fork(struct trapframe *tf, pid_t *pid) {
 
