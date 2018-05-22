@@ -228,23 +228,17 @@ int local_table_close_all(Local_File_Table *table) {
 
 }
 
-int local_table_copy(Local_File_Table *table, Local_File_Table **ret) {
-    KASSERT(table != NULL);
-    KASSERT(ret != NULL);
+int local_table_copy(Local_File_Table *src, Local_File_Table *dest) {
+    KASSERT(src != NULL);
+    KASSERT(dest != NULL);
 
-    Local_File_Table *copy = local_table_create();
+    lock_acquire(src->lk);
 
-    if (copy == NULL) {
-        return ENOMEM;
-    }
-
-    lock_acquire(table->lk);
-
-    memcpy(copy->files, table->files, sizeof(table->files));
+    memcpy(dest->files, src->files, sizeof(src->files));
 
     // Increment ref counts on all copied files
-    for (int i = 0; i < table->num_open_files; i++) {
-        File_Desc *file_desc = table->files[i];
+    for (int i = 0; i < src->num_open_files; i++) {
+        File_Desc *file_desc = src->files[i];
         // Super ugly null checking
         if (file_desc != NULL) {
             File *file = file_desc->file;
@@ -258,11 +252,8 @@ int local_table_copy(Local_File_Table *table, Local_File_Table **ret) {
         }
     }
 
-    copy->num_open_files = table->num_open_files;
-
-    lock_release(table->lk);
-
-    *ret = copy;
+    dest->num_open_files = src->num_open_files;
+    lock_release(src->lk);
 
     return 0;
 }
