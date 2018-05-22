@@ -11,7 +11,7 @@
 #include <synch.h>
 #include <thread.h>
 #include <mips/trapframe.h>
-#include "../arch/mips/thread/switchframe.h"
+//#include "../arch/mips/thread/switchframe.h"
 
 int sys_fork(struct trapframe *tf, pid_t *pid) {
 
@@ -90,6 +90,8 @@ void enter_forked_process(void *tf, unsigned long pid) {
     struct trapframe *new_tf = (struct trapframe *) tf;
     (void) pid;
 
+
+
     // Based on usage in the syscall method of syscall.c, these should work:
     // Register v0 in the trapframe is the syscall value OR the return value, in this case
     new_tf->tf_v0 = 0;
@@ -100,7 +102,7 @@ void enter_forked_process(void *tf, unsigned long pid) {
     // Increment the program counter so that we don't trap forever
     new_tf->tf_epc += 4;
 
-    mips_usermode(tf);
+    mips_usermode(new_tf);
 
     // This theoretically shouldn't be reachable
     KASSERT(1 == 2);
