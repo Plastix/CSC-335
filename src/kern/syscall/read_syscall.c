@@ -8,16 +8,9 @@
 #include <copyinout.h>
 #include <proc.h>
 #include <syscall.h>
+#include <kern/unistd.h>
 
-int sys_read(int filehandle, userptr_t buf, size_t size, size_t *ret) {
-    Local_File_Table *file_table = curproc->local_file_table;
-
-    // Get the file descriptor object from the local file table
-    File_Desc *desc = local_table_get(file_table, filehandle);
-    if (desc == NULL) {
-        return EBADF;
-    }
-
+static int read_from_disk(File_Desc *desc, userptr_t buf, size_t size, size_t *ret) {
     // Acquire the lock on the descriptor
     lock_acquire(desc->lk);
 
@@ -30,7 +23,7 @@ int sys_read(int filehandle, userptr_t buf, size_t size, size_t *ret) {
 
     // Acquire the read/write lock protecting the vnode
     lock_acquire(file->lk);
-    char *k_buffer[size];
+    char k_buffer[size];
     struct iovec iov;
     struct uio ku;
     int err;
@@ -70,4 +63,60 @@ int sys_read(int filehandle, userptr_t buf, size_t size, size_t *ret) {
     lock_release(desc->lk);
 
     return 0;
+}
+
+static int read_stdin(File_Desc *desc, userptr_t buf, size_t size, size_t *ret) {
+    lock_acquire(desc->lk);
+    File *f = desc->file;
+    lock_acquire(f->lk);
+
+    char bytes[size];
+    size_t read = 0;
+
+    while (read < size) {
+        int byte = getch();
+        bytes[read] = (char) byte;
+        read++;
+
+        if (byte == '\n' || byte == '\r') {
+            break;
+        }
+    }
+
+    int err = copyout(bytes, buf, read);
+    if (err) {
+        lock_release(f->lk);
+        lock_release(desc->lk);
+        return err;
+    }
+
+    *ret = read;
+
+    lock_release(f->lk);
+    lock_release(desc->lk);
+
+    return 0;
+
+}
+
+int sys_read(int filehandle, userptr_t buf, size_t size, size_t *ret) {
+    Local_File_Table *file_table = curproc->local_file_table;
+
+    // Get the file descriptor object from the local file table
+    File_Desc *desc = local_table_get(file_table, filehandle);
+    if (desc == NULL) {
+        return EBADF;
+    }
+
+    int standard = desc->standard;
+    switch (standard) {
+        case STDIN_FILENO:
+            return read_stdin(desc, buf, size, ret);
+        case -1:
+            return read_from_disk(desc, buf, size, ret);
+        default:
+            return EBADF;
+    }
+
+
 }

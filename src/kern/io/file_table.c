@@ -77,8 +77,6 @@ Local_File_Table *local_table_create() {
         return NULL;
     }
 
-    t->num_open_files = 0;
-
     for (int i = 0; i < MAX_LOCAL_TABLE_SIZE; ++i) {
         t->files[i] = NULL;
     }
@@ -86,6 +84,8 @@ Local_File_Table *local_table_create() {
     t->files[0] = file_desc_create(global_table_get_standard(STDIN_FILENO), O_RDONLY, STDIN_FILENO);
     t->files[1] = file_desc_create(global_table_get_standard(STDOUT_FILENO), O_WRONLY, STDOUT_FILENO);
     t->files[2] = file_desc_create(global_table_get_standard(STDERR_FILENO), O_WRONLY, STDIN_FILENO);
+
+    t->num_open_files = 3;
 
     // Creating STDIN/STDOUT/STDERR failed
     if (t->files[0] == NULL || t->files[1] == NULL || t->files[2] == NULL) {
@@ -130,6 +130,7 @@ int local_table_add_file(Local_File_Table *table, File *file, int flags, int *re
 }
 
 File_Desc *local_table_get(Local_File_Table *table, int file_handle) {
+    KASSERT(table != NULL);
     KASSERT(file_handle >= 0);
     KASSERT(file_handle < MAX_LOCAL_TABLE_SIZE);
 
@@ -158,8 +159,6 @@ Global_File_Table *global_table_create() {
         return NULL;
     }
 
-    t->num_open_files = 0;
-
     for (int i = 0; i < MAX_GLOBAL_TABLE_SIZE; ++i) {
         // Create special global files for STD*
         if (i >= 0 && i < 3) {
@@ -172,6 +171,8 @@ Global_File_Table *global_table_create() {
             t->files[i] = NULL;
         }
     }
+
+    t->num_open_files = 3;
 
     return t;
 }
