@@ -33,12 +33,15 @@ int sys_fork(struct trapframe *tf, pid_t *pid) {
         return EMPROC;
     }
 
-    lock_acquire(curproc->p_mutex);
     /*
      * CREATE A NEW PROCESS STRUCT
      */
     new_proc = proc_create("user_proc");
+    if (new_proc == NULL) {
+        return ENOMEM;
+    }
 
+    lock_acquire(curproc->p_mutex);
     /*
      * KEEP PARENT CWD
      */
@@ -106,6 +109,7 @@ void enter_forked_process(void *tf, unsigned long pid) {
     // Increment the program counter so that we don't trap forever
     new_tf.tf_epc += 4;
 
+    as_activate();
     mips_usermode(&new_tf);
 
     // This theoretically shouldn't be reachable

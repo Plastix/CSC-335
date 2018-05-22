@@ -564,4 +564,5 @@ add_executable(os161_bgp
         src/kern/syscall/exit_syscall.c
         src/kern/syscall/open_syscall.c
         src/kern/syscall/read_syscall.c
-        src/kern/syscall/write_syscall.c)
+        src/kern/syscall/write_syscall.c
+        src/kern/syscall/getpid_syscall.c)

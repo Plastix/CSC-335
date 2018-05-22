@@ -76,6 +76,8 @@ int sys_fork(struct trapframe *tf, pid_t *pid);
 
 int sys_execv(const char *prog, char *const *args);
 
-pid_t sys_waitpid(pid_t pid, int *returncode, int flags);
+int sys_waitpid(pid_t pid, int *returncode, int flags);
+
+int sys_getpid(pid_t *ret_pid);
 
 #endif /* _SYSCALL_H_ */

@@ -59,6 +59,7 @@ file syscall/exit_syscall.c
 file syscall/open_syscall.c
 file syscall/read_syscall.c
 file syscall/write_syscall.c
+file syscall/getpid_syscall.c
 
 
 ######################################
