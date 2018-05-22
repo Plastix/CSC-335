@@ -60,48 +60,44 @@ static File_Desc *file_desc_create(File *file, int flags, int standard) {
     return f;
 }
 
-static void file_destroy(File *file) {
+// De-allocates the local file descriptor as long as the refcount is 1
+static void file_desc_destroy(File_Desc *file_desc) {
+    KASSERT(file_desc != NULL);
+
+    // Get the file the global file table
+    File *file = file_desc->file;
+
     KASSERT(file != NULL);
 
-    // Don't close STD files
+    // Don't remove STDIN/STDOUT global files
     if (!file->is_standard) {
         // We don't know our index here so we need to do a scan
         // Sorry James
         lock_acquire(global_file_table->lk);
 
         struct vnode *vn = file->node;
+        KASSERT(vn != NULL);
 
-        if (vn != NULL && vn->vn_refcount == 1) {
-
+        if (vn->vn_refcount == 1) {
             for (int i = 0; i < MAX_GLOBAL_TABLE_SIZE; i++) {
                 if (global_file_table->files[i] == file) {
-                    KASSERT(vn != NULL);
-
-                    vfs_close(vn);
-                    file->node = NULL;
-                    lock_destroy(file->lk);
                     global_file_table->files[i] = NULL;
-
+                    vfs_close(vn);
+                    lock_destroy(file->lk);
                     break;
                 }
             }
+
+            lock_destroy(file_desc->lk);
+            kfree(file_desc);
+        } else {
+            vfs_close(vn);
         }
-
-        lock_release(global_file_table->lk);
-    }
-}
-
-static void file_desc_destroy(File_Desc *file_desc) {
-    KASSERT(file_desc != NULL);
-
-    File *file = file_desc->file;
-
-    if (file != NULL) {
-        file_destroy(file);
+    } else {
+        // TODO (Aidan) Handle the case when you are removing STDIN
     }
 
-    lock_destroy(file_desc->lk);
-    kfree(file_desc);
+    lock_release(global_file_table->lk);
 }
 
 ////////////////////////////////////
@@ -190,11 +186,12 @@ File_Desc *local_table_get(Local_File_Table *table, int file_handle) {
 int local_table_close_file(Local_File_Table *table, int file_handle) {
     KASSERT(table != NULL);
 
-    if (file_handle < 0 || file_handle >= MAX_LOCAL_TABLE_SIZE) {
+    lock_acquire(table->lk);
+
+    if (file_handle < 0 || file_handle >= table->num_open_files) {
+        lock_release(table->lk);
         return EBADF;
     }
-
-    lock_acquire(table->lk);
 
     File_Desc *desc = table->files[file_handle];
     if (desc == NULL) {
@@ -202,8 +199,11 @@ int local_table_close_file(Local_File_Table *table, int file_handle) {
         return EBADF;
     }
 
+    // Null out the slot in our local file table
     table->files[file_handle] = NULL;
     table->num_open_files--;
+
+    // Deallocate resources if needed
     file_desc_destroy(desc);
 
     lock_release(table->lk);
@@ -218,12 +218,13 @@ int local_table_close_all(Local_File_Table *table) {
 
     for (int i = 0; i < MAX_LOCAL_TABLE_SIZE; i++) {
         File_Desc *f = table->files[i];
+        // Null out slot in our local file table
+        table->files[i] = NULL;
 
         if (f != NULL) {
+            // Deallocate resources if needed
             file_desc_destroy(f);
         }
-
-        table->files[i] = NULL;
     }
 
     table->num_open_files = 0;

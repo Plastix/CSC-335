@@ -5,7 +5,6 @@
 #include <proc.h>
 
 void sys__exit(int code) {
-    (void) code;
     lock_acquire(curproc->p_mutex);
 
     curproc->return_value = code;
