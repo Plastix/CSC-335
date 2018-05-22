@@ -278,11 +278,15 @@ proc_addthread(struct proc *proc, struct thread *t)
 
 	KASSERT(t->t_proc == NULL);
 
-	KASSERT(proc->p_thread == NULL);
+//	if (strcmp(proc->p_name, "[kernel]") != 0) {
+//        KASSERT(proc->p_thread == NULL);
+//	}
 
 	spinlock_acquire(&proc->p_lock);
 	proc->p_numthreads++;
-	proc->p_thread = t;
+    if (strcmp(proc->p_name, "[kernel]") != 0) {
+        proc->p_thread = t;
+    }
 	spinlock_release(&proc->p_lock);
 
 	spl = splhigh();
