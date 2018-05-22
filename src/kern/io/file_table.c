@@ -228,6 +228,28 @@ int local_table_close_all(Local_File_Table *table) {
 
 }
 
+int local_table_copy(Local_File_Table *table, Local_File_Table **ret) {
+    KASSERT(table != NULL);
+    KASSERT(ret != NULL);
+
+    Local_File_Table *copy = local_table_create();
+
+    if (copy == NULL) {
+        return ENOMEM;
+    }
+
+    lock_acquire(table->lk);
+
+    memcpy(copy->files, table->files, sizeof(table->files));
+    copy->num_open_files = table->num_open_files;
+
+    lock_release(table->lk);
+
+    *ret = copy;
+
+    return 0;
+}
+
 ////////////////////////////////////
 // Global File Table Operations
 ////////////////////////////////////
