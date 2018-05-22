@@ -11,14 +11,7 @@
 
 /* close() system call */
 int sys_close(int fd) {
-
-    if (fd >= MAX_LOCAL_TABLE_SIZE || fd < 0) {
-        return EBADF;
-    }
-
-   // if (curthread->t_proc->local_file_table[fd] == NULL) {
-   //     return EBADF;
-   // }
+    File_Desc *fdesc = local_table_get(curproc->local_file_table, fd);
 
     /* check if file handle at that position has an ref_count of 1*/
 

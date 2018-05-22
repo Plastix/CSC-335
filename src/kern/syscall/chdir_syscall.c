@@ -1,17 +1,18 @@
-#include <filetable.h> /*this adds the function prototypes for this file */
-#include <kern/errno.h>	/*for EINVAL, other errors */
-#include <types.h>  /* for types like off_t, size_t, etc*/
-#include <vnode.h>  /*for all the VOP methods */
-#include <kern/stat.h> /* for getting the file size through VOP_STAT */
-#include <copyinout.h> /* for using the copyinstr function */
+#include <filetable.h>
+#include <kern/errno.h>
+#include <copyinout.h>
 #include <vfs.h>
-
-#define BUF_SIZE 255 /* maximum valid length of filename */
-
+#include <syscall.h>
+#include <current.h>
+#include <proc.h>
+#include <synch.h>
 
 /* chdir() syscall */
+
 int sys_chdir(const_userptr_t pathName){
-	char pathNameInput[BUF_SIZE];
+	lock_acquire(curthread->t_proc->p_mutex);
+
+	char pathNameInput[MAX_FILENAME_LEN];
 	size_t actual;
 	int err;
 
@@ -19,11 +20,13 @@ int sys_chdir(const_userptr_t pathName){
 		return EFAULT;
 	}
 
-	if ((err =  copyinstr(pathName, pathNameInput, BUF_SIZE, &actual) != 0)){
+	if ((err =  copyinstr(pathName, curthread->t_proc->p_cwd, MAX_FILENAME_LEN, &actual) != 0)){
 		return err;
 	}
 
 	err = vfs_chdir(pathNameInput);
+
+	lock_release(curthread->t_proc->p_mutex);
 	return err;
 
 }

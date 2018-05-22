@@ -24,7 +24,7 @@ int sys_lseek(int fd, off_t pos, int whence, off_t * retVal){
         return EBADF;
     }
 
-    struct File fdesc = curthread->t_proc->local_file_table[fd];
+    struct File fdesc = curproc curthread->t_proc->local_file_table[fd];
 
     if (fdesc == NULL) {
         return EBADF;
