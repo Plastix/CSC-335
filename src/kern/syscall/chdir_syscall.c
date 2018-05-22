@@ -1,15 +1,15 @@
-#include <files.h> /*this adds the function prototypes for this file */
+#include <filetable.h> /*this adds the function prototypes for this file */
 #include <kern/errno.h>	/*for EINVAL, other errors */
 #include <types.h>  /* for types like off_t, size_t, etc*/
 #include <vnode.h>  /*for all the VOP methods */
 #include <kern/stat.h> /* for getting the file size through VOP_STAT */
 #include <copyinout.h> /* for using the copyinstr function */
+#include <vfs.h>
 
 #define BUF_SIZE 255 /* maximum valid length of filename */
 
 
 /* chdir() syscall */
-
 int sys_chdir(const_userptr_t pathName){
 	char pathNameInput[BUF_SIZE];
 	size_t actual;

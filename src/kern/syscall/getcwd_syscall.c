@@ -1,4 +1,4 @@
-#include <files.h> /*this adds the function prototypes for this file */
+#include <filetable.h> /*this adds the function prototypes for this file */
 #include <kern/errno.h>	/*for EINVAL, other errors */
 #include <types.h>  /* for types like off_t, size_t, etc*/
 #include <vnode.h>  /*for all the VOP methods */
@@ -19,22 +19,6 @@
 /* __getcwd() syscall */
 int sys_getcwd(userptr_t buf, int * retval){
 
-    struct uio user;
-    struct iovec iov;
-    uio_kinit(&iov, &user, buf, BUF_SIZE, 0, UIO_READ);
-    user.uio_segflg = UIO_USERSPACE;
-//    user.uio_space = curthread->t_addrspace;
-
-    if (buf == NULL) {
-        return EFAULT;
-    }
-
-    int err;
-    if ((err = vfs_getcwd(&user) != 0)){
-        return err;
-    }
-
-    *retval = BUF_SIZE - user.uio_resid;
     return 0;
 
 }
