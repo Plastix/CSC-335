@@ -165,7 +165,7 @@ int local_table_add_file(Local_File_Table *table, File *file, int flags, int *re
 File_Desc *local_table_get(Local_File_Table *table, int file_handle) {
     KASSERT(table != NULL);
 
-    if (file_handle < 0 || file_handle >= table->num_open_files) {
+    if (file_handle < 0 || file_handle >= MAX_LOCAL_TABLE_SIZE) {
         return NULL;
     }
 
@@ -181,7 +181,7 @@ int local_table_close_file(Local_File_Table *table, int file_handle) {
 
     lock_acquire(table->lk);
 
-    if (file_handle < 0 || file_handle >= table->num_open_files) {
+    if (file_handle < 0 || file_handle >= MAX_LOCAL_TABLE_SIZE) {
         lock_release(table->lk);
         return EBADF;
     }
