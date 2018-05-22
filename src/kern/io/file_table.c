@@ -6,6 +6,7 @@
 #include <kern/errno.h>
 #include <kern/unistd.h>
 #include <kern/fcntl.h>
+#include <filetable.h>
 
 // Internal Helper functions
 
@@ -241,6 +242,23 @@ int local_table_copy(Local_File_Table *table, Local_File_Table **ret) {
     lock_acquire(table->lk);
 
     memcpy(copy->files, table->files, sizeof(table->files));
+
+    // Increment ref counts on all copied files
+    for (int i = 0; i < table->num_open_files; i++) {
+        File_Desc *file_desc = table->files[i];
+        // Super ugly null checking
+        if (file_desc != NULL) {
+            File *file = file_desc->file;
+            if (file != NULL) {
+                struct vnode *vn = file->node;
+                if (vn != NULL) {
+                    VOP_INCREF(vn);
+                }
+            }
+
+        }
+    }
+
     copy->num_open_files = table->num_open_files;
 
     lock_release(table->lk);
