@@ -57,7 +57,7 @@ __DEAD void enter_new_process(int argc, userptr_t argv, userptr_t env,
 
 
 /*
- * Prototypes for IN-KERNEL entry points for system call implementations.
+ * Prototypes for IN-KERNEL entry points for u call implementations.
  */
 
 int sys_reboot(int code);
