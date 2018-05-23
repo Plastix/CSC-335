@@ -21,12 +21,18 @@ static int read_from_disk(File_Desc *desc, userptr_t buf, size_t size, size_t *r
 
     File *file = desc->file;
 
-    // Acquire the readls/write lock protecting the vnode
-    lock_acquire(file->lk);
-    char k_buffer[size];
+    char *k_buffer = kmalloc(size);
+    if (k_buffer == NULL) {
+        lock_release(desc->lk);
+        return ENOMEM;
+    }
+
     struct iovec iov;
     struct uio ku;
     int err;
+
+    // Acquire the readls/write lock protecting the vnode
+    lock_acquire(file->lk);
 
     uio_kinit(&iov, &ku, k_buffer, size, desc->seek_location, UIO_READ);
     err = VOP_READ(file->node, &ku);
@@ -38,7 +44,7 @@ static int read_from_disk(File_Desc *desc, userptr_t buf, size_t size, size_t *r
         // Release both locks, must be in this order
         lock_release(file->lk);
         lock_release(desc->lk);
-        return EIO;
+        return err;
     }
 
     size_t bytes_copied = size - ku.uio_resid;
@@ -50,7 +56,7 @@ static int read_from_disk(File_Desc *desc, userptr_t buf, size_t size, size_t *r
         // Release both locks, must be in this order
         lock_release(file->lk);
         lock_release(desc->lk);
-        return EIO;
+        return err;
     }
 
     // Update seek location
@@ -70,7 +76,13 @@ static int read_stdin(File_Desc *desc, userptr_t buf, size_t size, size_t *ret) 
     File *f = desc->file;
     lock_acquire(f->lk);
 
-    char bytes[size];
+    char *bytes = kmalloc(size);
+    if (bytes == NULL) {
+        lock_release(f->lk);
+        lock_release(desc->lk);
+        return ENOMEM;
+    }
+
     size_t read = 0;
 
     while (read < size) {
@@ -104,6 +116,10 @@ static int read_stdin(File_Desc *desc, userptr_t buf, size_t size, size_t *ret) 
 }
 
 int sys_read(int filehandle, userptr_t buf, size_t size, size_t *ret) {
+    if (buf == NULL) {
+        return EFAULT;
+    }
+
     Local_File_Table *file_table = curproc->local_file_table;
 
     // Get the file descriptor object from the local file table

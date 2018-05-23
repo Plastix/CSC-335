@@ -47,7 +47,9 @@
 #include <proc.h>
 #include <current.h>
 #include <addrspace.h>
-
+#include <vnode.h>
+#include <synch.h>
+//#include <filetable.h>
 /*
  * The process for the kernel; this holds all the kernel-only threads.
  */
@@ -56,10 +58,14 @@ struct proc *kproc;
 /*
  * Create a proc structure.
  */
-static
-struct proc *
-proc_create(const char *name)
+struct proc *proc_create(const char *name)
 {
+    KASSERT(name != NULL);
+
+    if (GLOBAL_PROC_COUNT >= MAX_PROCS) {
+        return NULL;
+    }
+
 	struct proc *proc;
 
 	proc = kmalloc(sizeof(*proc));
@@ -90,6 +96,54 @@ proc_create(const char *name)
 	/* VFS fields */
 	proc->p_cwd = NULL;
 
+	proc->return_value = 0;
+
+	if (strcmp(name, "[kernel]") == 0) {
+	    proc->p_thread = NULL;
+	    proc->p_parent = NULL;
+	} else {
+        proc->p_thread = curthread;
+        proc->p_parent = curthread->t_proc;
+	}
+
+	proc->p_mutex = lock_create("proc_lock");
+	if (proc->p_mutex == NULL) {
+	    kfree(proc->p_name);
+	    kfree(proc);
+        return NULL;
+	}
+
+    proc->waiting = cv_create("proc_cv");
+    if (proc->waiting == NULL) {
+        lock_destroy(proc->p_mutex);
+        kfree(proc->p_name);
+        kfree(proc);
+        return NULL;
+    }
+
+    proc->p_num_childs = 0;
+	for (int i=0; i<MAX_CHILDS; i++) {
+	    proc->p_childs[i] = NULL;
+	}
+
+    /*
+     * ADD NEW PROC TO GLOBAL PROC TABLE
+     */
+    if (strcmp(name, "[kernel]") != 0) {
+        lock_acquire(GPT_lock);
+    }
+    for (int i=0; i<MAX_PROCS; i++) {
+        if (Global_Proc_Table[i] == NULL) {
+            Global_Proc_Table[i] = proc;
+            proc->pid = (unsigned) i;
+            break;
+        }
+    }
+    if (strcmp(name, "[kernel]") != 0) {
+        lock_release(GPT_lock);
+    }
+    GLOBAL_PROC_COUNT++;
+
 	return proc;
 }
 
@@ -103,8 +157,7 @@ proc_create(const char *name)
 /*
  * TODO: Update proc_destroy with every addition to proc struct
  */
-void
-proc_destroy(struct proc *proc)
+void proc_destroy(struct proc *proc)
 {
 	/*
 	 * You probably want to destroy and null out much of the
@@ -190,15 +243,29 @@ proc_destroy(struct proc *proc)
 void
 proc_bootstrap(void)
 {
+    /*
+     * Init Global Proc Table
+     */
+    for (int i=0; i<MAX_PROCS; i++) {
+        Global_Proc_Table[i] = NULL;
+    }
+    GPT_lock = lock_create("global_proc_table_lock");
+    /*
+     * Init Global File Table
+     */
     global_file_table = global_table_create();
     if (global_file_table == NULL) {
         panic("Global file table creation failed!");
     }
 
+    /*
+     * Create initial kernel proc
+     */
 	kproc = proc_create("[kernel]");
 	if (kproc == NULL) {
 		panic("proc_create for kproc failed\n");
 	}
+
 }
 
 /*
@@ -254,8 +321,15 @@ proc_addthread(struct proc *proc, struct thread *t)
 
 	KASSERT(t->t_proc == NULL);
 
+//	if (strcmp(proc->p_name, "[kernel]") != 0) {
+//        KASSERT(proc->p_thread == NULL);
+//	}
+
 	spinlock_acquire(&proc->p_lock);
 	proc->p_numthreads++;
+    if (strcmp(proc->p_name, "[kernel]") != 0) {
+        proc->p_thread = t;
+    }
 	spinlock_release(&proc->p_lock);
 
 	spl = splhigh();

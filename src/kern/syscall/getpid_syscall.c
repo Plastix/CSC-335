@@ -1,28 +1,12 @@
 #include <types.h>
-#include <lib.h>
-#include <proc.h>
-#include <thread.h>
 #include <current.h>
-#include <syscall.h>
-#include <errno.h>
+#include <proc.h>
 #include <synch.h>
+#include <syscall.h>
 
-/* getpid() syscall */
-int sys_getpid( int *retval ) {
-
-	lock_acquire(curproc->p_mutex);
-
-	if (curthread == NULL) {
-		return ENOTSUP;   /* Threads operation not supported */??
-	}
-
-	if (curthread->t_proc == NULL ) {
-		return ESRCH;     /* No such process */ ??
-	}
-
-	*retval = curthread->t_proc->pid;
-
-	lock_release(curproc->p_mutex);
-
-	return 0;
+int sys_getpid(pid_t *ret_pid) {
+    lock_acquire(curproc->p_mutex);
+    *ret_pid = curproc->pid;
+    lock_release(curproc->p_mutex);
+    return 0;
 }

@@ -46,8 +46,17 @@ struct vnode;
 // Global file table
 // Initialized in proc_bootstrap()
 Global_File_Table *global_file_table;
+// Global STD file descriptors
+File_Desc *stdin_fd;
+File_Desc *stdout_fd;
+File_Desc *stderr_fd;
 
+#define MAX_PROCS 128
 #define MAX_CHILDS 32
+
+struct proc *Global_Proc_Table[MAX_PROCS];
+struct lock *GPT_lock;
+unsigned GLOBAL_PROC_COUNT;
 
 /*
  * Process structure.
@@ -113,6 +122,8 @@ extern struct proc *kproc;
 
 /* Call once during system startup to allocate data structures. */
 void proc_bootstrap(void);
+
+struct proc *proc_create(const char *name);
 
 /* Create a fresh process for use by runprogram(). */
 struct proc *proc_create_runprogram(const char *name);

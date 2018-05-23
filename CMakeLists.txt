@@ -555,10 +555,19 @@ add_executable(os161_bgp
         src/userland/testbin/zero/zero.c
         src/kern/include/shared_buffer.h
         src/kern/shared_buffer/shared_buffer.c
-        src/kern/syscall/dup2_syscall.c
+        src/kern/shared_buffer/shared_buffer_test.c
+        src/kern/syscall/fork_syscall.c
+        src/kern/syscall/execv_syscall.c
+        src/kern/syscall/waitpid_syscall.c
+        src/kern/include/filetable.h
+        src/kern/io/file_table.c
+        src/kern/syscall/exit_syscall.c
+        src/kern/syscall/open_syscall.c
+        src/kern/syscall/read_syscall.c
+        src/kern/syscall/write_syscall.c
+        src/kern/syscall/getpid_syscall.c
+	src/kern/syscall/dup2_syscall.c
         src/kern/syscall/chdir_syscall.c
         src/kern/syscall/close_syscall.c
         src/kern/syscall/getcwd_syscall.c
-        src/kern/syscall/lseek_syscall.c
-        src/kern/include/syscall.h
-        src/kern/shared_buffer/shared_buffer_test.c src/kern/syscall/fork_syscall.c src/kern/syscall/execv_syscall.c src/kern/syscall/waitpid_syscall.c src/kern/include/filetable.h src/kern/io/file_table.c src/kern/syscall/exit_syscall.c src/kern/syscall/open_syscall.c src/kern/syscall/read_syscall.c src/kern/syscall/write_syscall.c src/kern/syscall/getpid_syscall.c)
+        src/kern/syscall/lseek_syscall.c)
