@@ -1,4 +1,6 @@
 #include <filetable.h> /*this adds the function prototypes for this file */
+#include <current.h>
+#include <proc.h>
 #include <syscall.h>
 #include <kern/errno.h>    /*for EINVAL, other errors */
 
@@ -10,10 +12,13 @@ int sys_dup2(int oldfd, int newfd, int *retval) {
         return EBADF;
     }
 
-    (void) retval;
+    int err = local_table_dup2(curproc->local_file_table, oldfd, newfd);
 
-    // TODO (Violet)
-    // Write a local_table monitor method for this
+    if (err) {
+        return err;
+    }
+
+    *retval = newfd;
 
     return 0;
 }

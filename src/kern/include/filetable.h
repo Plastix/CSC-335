@@ -89,6 +89,9 @@ int local_table_close_all(Local_File_Table *table);
 
 int local_table_copy(Local_File_Table *src, Local_File_Table *dest);
 
+int local_table_dup2(Local_File_Table *table, int old_file_handle, int new_file_handle);
+
+
 ////////////////////////////////////
 // Global File Table Operations
 Global_File_Table *global_table_create(void);

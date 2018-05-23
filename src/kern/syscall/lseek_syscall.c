@@ -30,20 +30,19 @@ int sys_lseek(int fd, off_t pos, int whence, off_t *retVal) {
     /* synchronize the process */
     lock_acquire(fdesc->lk);
 
-    switch (whence) {    // logic for different cases
+    switch (whence) {
         case SEEK_SET:
             if (pos < 0) {
                 lock_release(fdesc->lk);
                 return EINVAL;    // seek position is negative
             }
 
-            posUpdate = pos;
             if ((err = VOP_ISSEEKABLE(fdesc->file->node)) != 0) {
                 lock_release(fdesc->lk);
-                return err;    // SEEK fails
+                return ESPIPE;    // SEEK fails
             }
-            fdesc->seek_location = posUpdate;
-            *retVal = fdesc->seek_location;
+            //fdesc->seek_location = pos;
+            *retVal = pos;
             break;
 
         case SEEK_CUR:
@@ -57,10 +56,10 @@ int sys_lseek(int fd, off_t pos, int whence, off_t *retVal) {
 
             if ((err = VOP_ISSEEKABLE(fdesc->file->node)) != 0) {
                 lock_release(fdesc->lk);
-                return err;
+                return ESPIPE;
             }
-            fdesc->seek_location = posUpdate;
-            *retVal = fdesc->seek_location;
+            //fdesc->seek_location = posUpdate;
+            *retVal = posUpdate;
             break;
 
         case SEEK_END:
@@ -79,12 +78,12 @@ int sys_lseek(int fd, off_t pos, int whence, off_t *retVal) {
 
             if ((err = VOP_ISSEEKABLE(fdesc->file->node)) != 0) {
                 lock_release(fdesc->lk);
-                return err;
+                return ESPIPE;
             }
 
-            fdesc->seek_location = posUpdate; // any difference when pos is negative, zero, or positive ??
+            //fdesc->seek_location = posUpdate; // any difference when pos is negative, zero, or positive ??
 
-            *retVal = fdesc->seek_location;
+            *retVal = posUpdate;
             break;
 
         default:

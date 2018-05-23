@@ -259,6 +259,44 @@ int local_table_copy(Local_File_Table *src, Local_File_Table *dest) {
     return 0;
 }
 
+int local_table_dup2(Local_File_Table *table, int old_file_handle, int new_file_handle) {
+    KASSERT(table != NULL);
+
+    int err;
+    lock_acquire(table->lk);
+
+    if (old_file_handle < 0 || old_file_handle >= MAX_LOCAL_TABLE_SIZE || new_file_handle < 0 || new_file_handle >= MAX_LOCAL_TABLE_SIZE) {
+        lock_release(table->lk);
+        return EBADF;
+    }
+
+    File_Desc *desc = table->files[old_file_handle];
+    if (desc == NULL) {
+        lock_release(table->lk);
+        return EBADF;
+    }
+
+    if (old_file_handle == new_file_handle) {
+        return 0;
+    }
+
+    File_Desc *n_desc = table->files[new_file_handle];
+    if (n_desc != NULL) {
+        err = local_table_close_file(table , new_file_handle);
+        if (err) {
+            return err;
+        }
+    }
+
+    lock_acquire(desc->file->lk);
+    desc->file->node->vn_refcount ++;
+    lock_release(desc->file->lk);
+
+    table->files[new_file_handle] = desc;
+
+    return 0;
+}
+
 ////////////////////////////////////
 // Global File Table Operations
 ////////////////////////////////////
