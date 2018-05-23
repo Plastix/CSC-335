@@ -265,18 +265,25 @@ int local_table_dup2(Local_File_Table *table, int old_file_handle, int new_file_
     int err;
     lock_acquire(table->lk);
 
-    if (old_file_handle < 0 || old_file_handle >= MAX_LOCAL_TABLE_SIZE || new_file_handle < 0 || new_file_handle >= MAX_LOCAL_TABLE_SIZE) {
-        lock_release(table->lk);
-        return EBADF;
-    }
+    //if (old_file_handle < 0 || old_file_handle >= MAX_LOCAL_TABLE_SIZE || new_file_handle < 0 || new_file_handle >= MAX_LOCAL_TABLE_SIZE) {
+    //    lock_release(table->lk);
+    //    return EBADF;
+    //}
 
     File_Desc *desc = table->files[old_file_handle];
+
     if (desc == NULL) {
         lock_release(table->lk);
         return EBADF;
     }
 
+    if (old_file_handle == 0 ) {  // TODO (Violet): copying stdin to test with... panic: Fatal exception 2 (TLB miss on load) in kernel mode
+        lock_release(table->lk);
+        return EBADF;
+    }
+
     if (old_file_handle == new_file_handle) {
+        lock_release(table->lk);
         return 0;
     }
 
@@ -284,15 +291,20 @@ int local_table_dup2(Local_File_Table *table, int old_file_handle, int new_file_
     if (n_desc != NULL) {
         err = local_table_close_file(table , new_file_handle);
         if (err) {
+            lock_release(table->lk);
             return err;
         }
     }
 
     lock_acquire(desc->file->lk);
-    desc->file->node->vn_refcount ++;
-    lock_release(desc->file->lk);
 
     table->files[new_file_handle] = desc;
+    VOP_INCREF(desc->file->node);
+    table->num_open_files++;
+
+    lock_release(desc->file->lk);
+
+    lock_release(table->lk);
 
     return 0;
 }

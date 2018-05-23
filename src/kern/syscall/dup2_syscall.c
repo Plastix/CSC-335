@@ -5,8 +5,13 @@
 #include <kern/errno.h>    /*for EINVAL, other errors */
 
 
-/* dup2() syscall */
+/* dup2() syscall
+ * returns newfd. On error, -1 is returned,
+ * and errno is set according to the error encountered.
+ * */
 int sys_dup2(int oldfd, int newfd, int *retval) {
+
+    *retval = -1;
 
     if (oldfd >= MAX_LOCAL_TABLE_SIZE || oldfd < 0 || newfd >= MAX_LOCAL_TABLE_SIZE || newfd < 0) {
         return EBADF;

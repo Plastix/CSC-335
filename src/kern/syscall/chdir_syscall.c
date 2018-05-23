@@ -28,13 +28,15 @@ int sys_chdir(const_userptr_t pathName, int *retVal) {
         return EFAULT;
     }
 
-    if ((err = copyinstr(pathName, pathNameInput, MAX_FILENAME_LEN, &actual) != 0)) {
+    err = copyinstr(pathName, pathNameInput, MAX_FILENAME_LEN, &actual);
+    if (err) {
         *retVal = -1;
         lock_release(curproc->p_mutex);
         return err;
     }
 
-    if ((err = vfs_chdir(pathNameInput) != 0)) {
+    err = vfs_chdir(pathNameInput);
+    if (err) {
         *retVal = -1;
         lock_release(curproc->p_mutex);
         return err;
