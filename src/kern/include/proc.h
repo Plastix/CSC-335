@@ -123,6 +123,9 @@ extern struct proc *kproc;
 /* Call once during system startup to allocate data structures. */
 void proc_bootstrap(void);
 
+/* Call once at the end of system start */
+void file_table_bootstrap(void);
+
 struct proc *proc_create(const char *name);
 
 /* Create a fresh process for use by runprogram(). */

@@ -14,7 +14,7 @@ static int write_to_disk(File_Desc *desc, const_userptr_t buf, size_t size, size
     // Acquire the lock on the descriptor
     lock_acquire(desc->lk);
 
-    if (desc->flags != O_WRONLY || desc->flags != O_RDWR) {
+    if (desc->flags == O_RDONLY) {
         *ret = (size_t) -1;
         lock_release(desc->lk);
         return EBADF;
@@ -44,7 +44,7 @@ static int write_to_disk(File_Desc *desc, const_userptr_t buf, size_t size, size
         return err;
     }
 
-    uio_kinit(&iov, &ku, k_buffer, size, desc->seek_location, UIO_READ);
+    uio_kinit(&iov, &ku, k_buffer, size, desc->seek_location, UIO_WRITE);
     err = VOP_WRITE(file->node, &ku);
 
     // Reading file failed somehow

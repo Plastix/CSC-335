@@ -14,7 +14,8 @@ static int read_from_disk(File_Desc *desc, userptr_t buf, size_t size, size_t *r
     // Acquire the lock on the descriptor
     lock_acquire(desc->lk);
 
-    if (desc->flags != O_RDONLY || desc->flags != O_RDWR) {
+    if (desc->flags == O_WRONLY) {
+        *ret = (size_t) -1;
         lock_release(desc->lk);
         return EBADF;
     }
@@ -23,6 +24,7 @@ static int read_from_disk(File_Desc *desc, userptr_t buf, size_t size, size_t *r
 
     char *k_buffer = kmalloc(size);
     if (k_buffer == NULL) {
+        *ret = (size_t) -1;
         lock_release(desc->lk);
         return ENOMEM;
     }
@@ -40,7 +42,6 @@ static int read_from_disk(File_Desc *desc, userptr_t buf, size_t size, size_t *r
     // Reading file failed somehow
     if (err) {
         *ret = (size_t) -1;
-
         // Release both locks, must be in this order
         lock_release(file->lk);
         lock_release(desc->lk);
@@ -52,7 +53,6 @@ static int read_from_disk(File_Desc *desc, userptr_t buf, size_t size, size_t *r
     err = copyout(k_buffer, buf, bytes_copied);
     if (err) {
         *ret = (size_t) -1;
-
         // Release both locks, must be in this order
         lock_release(file->lk);
         lock_release(desc->lk);
@@ -78,6 +78,7 @@ static int read_stdin(File_Desc *desc, userptr_t buf, size_t size, size_t *ret) 
 
     char *bytes = kmalloc(size);
     if (bytes == NULL) {
+        *ret = (size_t) -1;
         lock_release(f->lk);
         lock_release(desc->lk);
         return ENOMEM;
@@ -101,6 +102,7 @@ static int read_stdin(File_Desc *desc, userptr_t buf, size_t size, size_t *ret) 
 
     int err = copyout(bytes, buf, read);
     if (err) {
+        *ret = (size_t) -1;
         lock_release(f->lk);
         lock_release(desc->lk);
         return err;

@@ -47,7 +47,6 @@
 #include <proc.h>
 #include <current.h>
 #include <addrspace.h>
-#include <vnode.h>
 #include <synch.h>
 //#include <filetable.h>
 /*
@@ -244,12 +243,24 @@ void
 proc_bootstrap(void)
 {
     /*
-     * Init Global Proc Table
+     * Create initial kernel proc
      */
-    for (int i=0; i<MAX_PROCS; i++) {
+	kproc = proc_create("[kernel]");
+	if (kproc == NULL) {
+		panic("proc_create for kproc failed\n");
+	}
+
+}
+
+void file_table_bootstrap(void) {
+    /*
+    * Init Global Proc Table
+    */
+    for (int i = 0; i < MAX_PROCS; i++) {
         Global_Proc_Table[i] = NULL;
     }
     GPT_lock = lock_create("global_proc_table_lock");
+
     /*
      * Init Global File Table
      */
@@ -257,14 +268,6 @@ proc_bootstrap(void)
     if (global_file_table == NULL) {
         panic("Global file table creation failed!");
     }
-
-    /*
-     * Create initial kernel proc
-     */
-	kproc = proc_create("[kernel]");
-	if (kproc == NULL) {
-		panic("proc_create for kproc failed\n");
-	}
 
 }
 
