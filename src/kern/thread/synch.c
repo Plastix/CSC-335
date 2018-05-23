@@ -177,6 +177,7 @@ void lock_destroy(struct lock *lock) {
 void lock_acquire(struct lock *lock) {
     KASSERT(lock != NULL);
     KASSERT(curthread->t_in_interrupt == false);
+    KASSERT(!lock_do_i_hold(lock));
 
     spinlock_acquire(&lock->lk_spinlock);
 
@@ -201,11 +202,10 @@ void lock_acquire(struct lock *lock) {
 
 void lock_release(struct lock *lock) {
     KASSERT(lock != NULL);
-
-    spinlock_acquire(&lock->lk_spinlock);
-
     // Assert that we are the holding thread the lock before releasing
     KASSERT(lock->lk_holder == curthread);
+
+    spinlock_acquire(&lock->lk_spinlock);
 
     lock->available = true;
     lock->lk_holder = NULL;
@@ -222,9 +222,7 @@ void lock_release(struct lock *lock) {
 bool lock_do_i_hold(struct lock *lock) {
     KASSERT(lock != NULL);
 
-    spinlock_acquire(&lock->lk_spinlock);
     bool is_held = lock->lk_holder == curthread;
-    spinlock_release(&lock->lk_spinlock);
 
     return is_held;
 }

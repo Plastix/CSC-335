@@ -127,7 +127,7 @@ boot(void)
 	/* Late phase of initialization. */
 	vm_bootstrap();
 	kprintf_bootstrap();
-	thread_start_cpus();
+    thread_start_cpus();
 	test161_bootstrap();
 
 	/* Default bootfs - but ignore failure, in case emu0 doesn't exist */
@@ -140,6 +140,8 @@ boot(void)
 	 */
 	COMPILE_ASSERT(sizeof(userptr_t) == sizeof(char *));
 	COMPILE_ASSERT(sizeof(*(userptr_t)0) == sizeof(char));
+
+    file_table_bootstrap();
 }
 
 /*
