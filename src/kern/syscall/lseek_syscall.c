@@ -87,10 +87,9 @@ int sys_lseek(int fd, off_t pos, int whence, off_t *retVal) {
             break;
 
         default:
+            lock_release(fdesc->lk);
             return EINVAL;
     }
-
-    lock_release(fdesc->lk);
 
     lock_release(curproc->p_mutex);
 
