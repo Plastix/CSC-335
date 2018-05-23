@@ -1,7 +1,7 @@
 #include <filetable.h>
 #include <kern/errno.h>
-#include <types.h>
-#include <kern/stat.h> 
+#include <kern/stat.h>
+#include <syscall.h>
 #include <current.h>
 #include <kern/seek.h>
 #include <synch.h>
@@ -11,7 +11,7 @@
 
 /* lseek() syscall */
 
-int sys_lseek(int fd, off_t pos, int whence, off_t * retVal){
+int sys_lseek(int fd, off_t pos, int whence, off_t *retVal) {
 
     int err;
     off_t currentPosition;
@@ -21,7 +21,7 @@ int sys_lseek(int fd, off_t pos, int whence, off_t * retVal){
 
     lock_acquire(curproc->p_mutex);
 
-    File_Desc * fdesc = local_table_get(curproc->local_file_table, fd);
+    File_Desc *fdesc = local_table_get(curproc->local_file_table, fd);
 
     if (fdesc == NULL) {
         return EBADF;
@@ -30,17 +30,17 @@ int sys_lseek(int fd, off_t pos, int whence, off_t * retVal){
     /* synchronize the process */
     lock_acquire(fdesc->lk);
 
-    switch(whence) {	// logic for different cases
+    switch (whence) {    // logic for different cases
         case SEEK_SET:
             if (pos < 0) {
                 lock_release(fdesc->lk);
-                return EINVAL;	// seek position is negative
+                return EINVAL;    // seek position is negative
             }
 
             posUpdate = pos;
             if ((err = VOP_ISSEEKABLE(fdesc->file->node)) != 0) {
                 lock_release(fdesc->lk);
-                return err;	// SEEK fails
+                return err;    // SEEK fails
             }
             fdesc->seek_location = posUpdate;
             *retVal = fdesc->seek_location;
@@ -64,7 +64,7 @@ int sys_lseek(int fd, off_t pos, int whence, off_t * retVal){
             break;
 
         case SEEK_END:
-            if (err = VOP_STAT(fdesc->file->node, &st) != 0) {
+            if ((err = VOP_STAT(fdesc->file->node, &st)) != 0) {
                 lock_release(fdesc->lk);
                 return err;
             }
