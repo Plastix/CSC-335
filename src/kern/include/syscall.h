@@ -82,13 +82,13 @@ int sys_getpid(pid_t *ret_pid);
 
 
 
-int sys_close(int fd);
+int sys_close(int fd, int *retVal);
 
-int sys_dup2(int oldfd, int newfd, int *retval);
+int sys_dup2(int oldfd, int newfd, int *retVal);
 
 int sys_lseek(int fd, off_t pos, int whence, off_t *retVal);
 
-int sys_chdir(const_userptr_t pathname);
+int sys_chdir(const_userptr_t pathname, int *retVal);
 
 int sys____getcwd(userptr_t buf, size_t buflen, int *retval);
 

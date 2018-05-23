@@ -9,8 +9,11 @@
 #include <vfs.h>
 
 
-/* lseek() syscall */
-
+/* lseek() syscall
+ *
+ * On success, lseek returns the new position. On error, -1 is returned,
+ * and errno is set according to the error encountered.
+ * */
 int sys_lseek(int fd, off_t pos, int whence, off_t *retVal) {
 
     int err;
@@ -19,11 +22,22 @@ int sys_lseek(int fd, off_t pos, int whence, off_t *retVal) {
     off_t posUpdate;
     struct stat st;
 
+    *retVal = -1;
+
     lock_acquire(curproc->p_mutex);
+
+    if (fd < 0 || fd >= MAX_LOCAL_TABLE_SIZE) {
+        return EBADF;
+    }
+
+    if (curproc->local_file_table == NULL) {
+        return EBADF;
+    }
 
     File_Desc *fdesc = local_table_get(curproc->local_file_table, fd);
 
     if (fdesc == NULL) {
+        lock_release(curproc->p_mutex);
         return EBADF;
     }
 
@@ -41,7 +55,7 @@ int sys_lseek(int fd, off_t pos, int whence, off_t *retVal) {
                 lock_release(fdesc->lk);
                 return ESPIPE;    // SEEK fails
             }
-            //fdesc->seek_location = pos;
+            fdesc->seek_location = pos;
             *retVal = pos;
             break;
 
@@ -58,7 +72,7 @@ int sys_lseek(int fd, off_t pos, int whence, off_t *retVal) {
                 lock_release(fdesc->lk);
                 return ESPIPE;
             }
-            //fdesc->seek_location = posUpdate;
+            fdesc->seek_location = posUpdate;
             *retVal = posUpdate;
             break;
 
@@ -81,8 +95,7 @@ int sys_lseek(int fd, off_t pos, int whence, off_t *retVal) {
                 return ESPIPE;
             }
 
-            //fdesc->seek_location = posUpdate; // any difference when pos is negative, zero, or positive ??
-
+            fdesc->seek_location = posUpdate; // any difference when pos is negative, zero, or positive ??
             *retVal = posUpdate;
             break;
 
