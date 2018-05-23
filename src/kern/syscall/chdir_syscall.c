@@ -10,24 +10,26 @@
 
 /* chdir() syscall */
 
-int sys_chdir(const_userptr_t pathName){
-	lock_acquire(curthread->t_proc->p_mutex);
+int sys_chdir(const_userptr_t pathName) {
+    lock_acquire(curproc->p_mutex);
 
-	char pathNameInput[MAX_FILENAME_LEN];
-	size_t actual;
-	int err;
+    char pathNameInput[MAX_FILENAME_LEN];
+    size_t actual;
+    int err;
 
-	if (pathName == NULL){
-		return EFAULT;
-	}
+    if (pathName == NULL) {
+        lock_release(curproc->p_mutex);
+        return EFAULT;
+    }
 
-	if ((err =  copyinstr(pathName, pathNameInput, MAX_FILENAME_LEN, &actual) != 0)){
-		return err;
-	}
+    if ((err = copyinstr(pathName, pathNameInput, MAX_FILENAME_LEN, &actual) != 0)) {
+        lock_release(curproc->p_mutex);
+        return err;
+    }
 
-	err = vfs_chdir(pathNameInput);
+    err = vfs_chdir(pathNameInput);
 
-	lock_release(curthread->t_proc->p_mutex);
-	return err;
+    lock_release(curproc->p_mutex);
+    return err;
 
 }
