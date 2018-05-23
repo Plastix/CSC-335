@@ -87,7 +87,7 @@ struct proc {
     struct vnode *p_cwd;        /* current working directory */
 
     // Process ID
-    unsigned pid;
+    pid_t pid;
 
     // Return value of process
     int return_value;

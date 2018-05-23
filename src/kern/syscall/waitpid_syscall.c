@@ -13,11 +13,10 @@
 
 int sys_waitpid(pid_t *ret_pid, userptr_t target_pid, userptr_t ret_status, userptr_t opts) {
     /*
-     * First, ensure all paramters except ret_status are not null
+     * First, ensure paramters are not null
      */
     KASSERT(ret_pid != NULL);
     KASSERT(target_pid != NULL);
-    KASSERT(opts != NULL);
 
     pid_t tgt_pid;
     int k_opts;
@@ -48,7 +47,7 @@ int sys_waitpid(pid_t *ret_pid, userptr_t target_pid, userptr_t ret_status, user
      * CHECK TARGET PROC IS CHILD OF CALLING PROC
      */
     int found = 0;
-    for (int i=0; i<curproc->p_num_childs; i++) {
+    for (unsigned i=0; i<curproc->p_num_childs; i++) {
         if (curproc->p_childs[i] != NULL && curproc->p_childs[i]->pid == tgt_pid) {
             found++;
         }
