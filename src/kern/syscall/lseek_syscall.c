@@ -17,9 +17,9 @@
 int sys_lseek(int fd, off_t pos, int whence, off_t *retVal) {
 
     int err;
-    off_t currentPosition;
+    //off_t currentPosition;
     off_t endPosition;
-    off_t posUpdate;
+    off_t newPos;
     struct stat st;
 
     *retVal = -1;
@@ -46,9 +46,18 @@ int sys_lseek(int fd, off_t pos, int whence, off_t *retVal) {
     /* synchronize the process */
     lock_acquire(fdesc->lk);
 
+
+    err = VOP_ISSEEKABLE(fdesc->file->node);
+    if (err) {
+        lock_release(fdesc->lk);
+        lock_release(curproc->p_mutex);
+        return err;
+    }
+
+
     switch (whence) {
         case SEEK_SET:
-            if (pos < 0) {
+        /*    if (pos < 0) {
                 lock_release(fdesc->lk);
                 lock_release(curproc->p_mutex);
                 return EINVAL;    // seek position is negative
@@ -58,35 +67,38 @@ int sys_lseek(int fd, off_t pos, int whence, off_t *retVal) {
                 lock_release(fdesc->lk);
                 lock_release(curproc->p_mutex);
                 return ESPIPE;    // SEEK fails
-            }
-            fdesc->seek_location = pos;
-            *retVal = pos;
+            } */
+            //fdesc->seek_location = pos;
+            //*retVal = pos;
+            newPos = pos;
             break;
 
         case SEEK_CUR:
-            currentPosition = fdesc->seek_location;
-            posUpdate = currentPosition + pos;
+            /* currentPosition = fdesc->seek_location;
+            newPos = currentPosition + pos;
 
-            if (posUpdate < 0) {  // ?? Any up boundary ??
+            if (newPos < 0) {
                 lock_release(fdesc->lk);
                 lock_release(curproc->p_mutex);
-                return EINVAL;  /* Invalid argument */
+                return EINVAL;
             }
 
             if ((err = VOP_ISSEEKABLE(fdesc->file->node)) != 0) {
                 lock_release(fdesc->lk);
                 lock_release(curproc->p_mutex);
                 return ESPIPE;
-            }
-            fdesc->seek_location = posUpdate;
-            *retVal = posUpdate;
+            } */
+
+            //fdesc->seek_location = newPos;
+            //*retVal = newPos;
+
+            newPos = fdesc->seek_location + pos;
             break;
 
         case SEEK_END:
             endPosition = st.st_size;
-            posUpdate = endPosition + pos;
-
-            if (posUpdate < 0) {
+            /*
+            if (newPos < 0) {
                 lock_release(fdesc->lk);
                 lock_release(curproc->p_mutex);
                 return EINVAL;
@@ -97,15 +109,18 @@ int sys_lseek(int fd, off_t pos, int whence, off_t *retVal) {
                 lock_release(curproc->p_mutex);
                 return ESPIPE;
             }
-
-            if ((err = VOP_STAT(fdesc->file->node, &st)) != 0) {
+            */
+            err = VOP_STAT(fdesc->file->node, &st);
+            if (err) {
                 lock_release(fdesc->lk);
                 lock_release(curproc->p_mutex);
                 return err;
             }
 
-            fdesc->seek_location = posUpdate; // any difference when pos is negative, zero, or positive ??
-            *retVal = posUpdate;
+            newPos = endPosition + pos;
+            //fdesc->seek_location = newPos; // any difference when pos is negative, zero, or positive ??
+            //*retVal = newPos;
+
             break;
 
         default:
@@ -113,6 +128,15 @@ int sys_lseek(int fd, off_t pos, int whence, off_t *retVal) {
             lock_release(curproc->p_mutex);
             return EINVAL;
     }
+
+    if (newPos < 0) {
+        lock_release(fdesc->lk);
+        lock_release(curproc->p_mutex);
+        return EINVAL;    // seek position is negative
+    }
+
+    fdesc->seek_location = newPos;
+    *retVal = newPos;
 
     lock_release(fdesc->lk);
     lock_release(curproc->p_mutex);

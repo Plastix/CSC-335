@@ -37,9 +37,6 @@
 #include <syscall.h>
 #include <copyinout.h>
 
-#define MAKE_64BIT(x,y) (((int64_t)x) << 32 | y)
-#define GET_LO(x) ((int32_t) x & 0x00000000FFFFFFFF)
-#define GET_HI(x) ((int32_t) x & 0xFFFFFFFF00000000)
 /*
  * System call dispatcher.
  *
@@ -84,9 +81,9 @@ syscall(struct trapframe *tf) {
     int32_t retval;
     int err;
 
-    int64_t retval64;
-    int nextra;
-    bool handle64;
+//    int64_t retval64;
+//    int nextra;
+//    bool handle64;
 
     KASSERT(curthread != NULL);
     KASSERT(curthread->t_curspl == 0);
@@ -105,7 +102,7 @@ syscall(struct trapframe *tf) {
 
     retval = 0;
 
-    handle64 = false; // ??
+//    handle64 = false; // ??
 
     switch (callno) {
         case SYS_reboot:
@@ -161,13 +158,12 @@ syscall(struct trapframe *tf) {
             err = sys_chdir((const_userptr_t) tf->tf_a0, &retval);
             break;
         case SYS_lseek:
-            err = copyin((userptr_t)(tf->tf_sp+16), &nextra, sizeof(int));
-            if (err)
-                break;
-            //err = sys_lseek(tf->tf_a0, tf->tf_a1, tf->tf_a2, (off_t *) &retval);
-            err = sys_lseek(tf->tf_a0, MAKE_64BIT(tf->tf_a2, tf->tf_a3), nextra, &retval64);
-            handle64 = true;
-
+//            err = copyin((userptr_t)(tf->tf_sp+16), &nextra, sizeof(int));
+//            if (err)
+ //               break;
+            err = sys_lseek(tf->tf_a0, tf->tf_a1, tf->tf_a2, (off_t *) &retval);
+//            err = sys_lseek(tf->tf_a0, MAKE_64BIT(tf->tf_a2, tf->tf_a3), nextra, &retval64);
+//            handle64 = true;
             break;
         case SYS_dup2:
             err = sys_dup2(tf->tf_a0, tf->tf_a1, &retval);
@@ -175,6 +171,11 @@ syscall(struct trapframe *tf) {
         case SYS___getcwd:
             err = sys____getcwd((userptr_t) tf->tf_a0, tf->tf_a1, &retval);
             break;
+
+        case SYS_mkdir:
+            err = sys_mkdir((userptr_t)tf->tf_a0, (mode_t)tf->tf_a1, &retval);
+            break;
+
         default:
             kprintf("Unknown syscall %d\n", callno);
             err = ENOSYS;
@@ -191,11 +192,11 @@ syscall(struct trapframe *tf) {
         tf->tf_v0 = err;
         tf->tf_a3 = 1;      /* signal an error */
     }
-    else if (handle64) {
-        tf->tf_a3 = 0;
-        tf->tf_v0 = GET_HI(retval64);
-        tf->tf_v1 = GET_LO(retval64);
-    }
+//    else if (handle64) {
+//        tf->tf_a3 = 0;
+//        tf->tf_v0 = GET_HI(retval64);
+//        tf->tf_v1 = GET_LO(retval64);
+//    }
     else {
         /* Success. */
         tf->tf_v0 = retval;

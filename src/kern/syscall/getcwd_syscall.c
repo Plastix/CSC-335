@@ -16,6 +16,8 @@ int sys____getcwd(userptr_t buf, size_t buflen, int *retval) {
 
     lock_acquire(curproc->p_mutex);
 
+    *retval = -1;
+
     if (buf == NULL) {
         lock_release(curproc->p_mutex);
         return EFAULT;
@@ -27,6 +29,9 @@ int sys____getcwd(userptr_t buf, size_t buflen, int *retval) {
     }
 
     uio_kinit(&iov, &useruio, buf, buflen, 0, UIO_READ);
+
+    useruio.uio_space = curproc->p_addrspace;
+    useruio.uio_segflg = UIO_USERISPACE;
 
     err = vfs_getcwd(&useruio);
 

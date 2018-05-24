@@ -570,4 +570,4 @@ add_executable(os161_bgp
         src/kern/syscall/chdir_syscall.c
         src/kern/syscall/close_syscall.c
         src/kern/syscall/getcwd_syscall.c
-        src/kern/syscall/lseek_syscall.c)
+        src/kern/syscall/lseek_syscall.c src/kern/syscall/mkdir_syscall.c)

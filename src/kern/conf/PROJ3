@@ -65,7 +65,7 @@ file syscall/close_syscall.c
 file syscall/dup2_syscall.c
 file syscall/getcwd_syscall.c
 file syscall/lseek_syscall.c
-
+file syscall/mkdir_syscall.c
 
 ######################################
 #                                    #

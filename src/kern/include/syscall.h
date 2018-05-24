@@ -93,4 +93,7 @@ int sys_chdir(const_userptr_t pathname, int *retVal);
 int sys____getcwd(userptr_t buf, size_t buflen, int *retval);
 
 
+// for testing purpose
+int sys_mkdir(const_userptr_t pathname, mode_t mode, int *retVal);
+
 #endif /* _SYSCALL_H_ */
