@@ -42,6 +42,7 @@ file table initializes, it sets three global pointer objects:
 - `File_Desc *stdin_fd`
 - `File_Desc *stdout_fd`
 - `File_Desc *stderr_fd`
+
 This means that when duping STD*, we can just copy the pointer. These global objects are made sure never to be closed.
 When a local file table is initialized, the first three indices are set to point to these objects.
 
