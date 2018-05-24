@@ -6,6 +6,7 @@
 #include <kern/errno.h>
 #include <kern/unistd.h>
 #include <kern/fcntl.h>
+#include <filetable.h>
 
 // Internal Helper functions
 
@@ -44,7 +45,7 @@ static File_Desc *file_desc_create(File *file, int flags, int standard) {
     }
 
     f->seek_location = 0;
-    f->flags = flags;
+    f->flags = flags & O_ACCMODE;
     f->file = file;
     f->standard = standard;
 
@@ -350,6 +351,7 @@ int global_table_open_file(char *filename, int flags, File **ret) {
         }
     }
 
+    *ret = f;
     global_file_table->num_open_files++;
 
     lock_release(global_file_table->lk);
