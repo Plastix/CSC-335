@@ -151,7 +151,7 @@ syscall(struct trapframe *tf) {
             err = 0;
             break;
         case SYS_close:
-            err = sys_close(tf->tf_a0, &retval);
+            err = sys_close(tf->tf_a0);
             break;
             /* Add stuff here */
         case SYS_chdir:

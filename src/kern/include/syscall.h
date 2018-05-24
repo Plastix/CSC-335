@@ -81,8 +81,7 @@ int sys_waitpid(pid_t *ret_pid, userptr_t target_pid, userptr_t ret_status, user
 int sys_getpid(pid_t *ret_pid);
 
 
-
-int sys_close(int fd, int *retVal);
+int sys_close(int fd);
 
 int sys_dup2(int oldfd, int newfd, int *retVal);
 
