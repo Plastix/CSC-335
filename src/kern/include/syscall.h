@@ -74,7 +74,7 @@ int sys_write(int filehandle, const_userptr_t buf, size_t size, size_t *ret);
 
 int sys_fork(struct trapframe *tf, pid_t *pid);
 
-int sys_execv(const_userptr_t progname, const_userptr_t args);
+int sys_execv(const char *prog, char *const *args);
 
 int sys_waitpid(pid_t *ret_pid, userptr_t target_pid, userptr_t ret_status, userptr_t opts);
 

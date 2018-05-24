@@ -64,13 +64,11 @@ int sys_waitpid(pid_t *ret_pid, userptr_t target_pid, userptr_t ret_status, user
     lock_release(GPT_lock);
 
     /*
-     * WAIT ON TARGET PROC WAITING CV IF IT HASN'T RETURNED
+     * WAIT ON TARGET PROC WAITING CV
      */
-    if (target_proc->p_thread->t_state != S_ZOMBIE) {
-        lock_acquire(target_proc->p_mutex);
-        cv_wait(target_proc->waiting, target_proc->p_mutex);
-        lock_release(target_proc->p_mutex);
-    }
+    lock_acquire(target_proc->p_mutex);
+    cv_wait(target_proc->waiting, target_proc->p_mutex);
+    lock_release(target_proc->p_mutex);
     /*
      * THE FOLLOWING IS ONLY REACHED WHEN THE TARGET PROC DIES
      */
