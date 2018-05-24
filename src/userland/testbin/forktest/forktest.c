@@ -151,9 +151,9 @@ static
 void
 test(int nowait)
 {
-	int pid0, pid1;//, pid2, pid3;
+	int pid0, pid1, pid2;//, pid3;
 	int depth = 0;
-
+    tprintf("HEAD OF TEST METHOD\n");
 	/*
 	 * Caution: This generates processes geometrically.
 	 *
@@ -190,7 +190,7 @@ test(int nowait)
 	}
 
 	pid0 = dofork();
-	nprintf(".");
+	tprintf(".");
 	write(fd, "A", 1);
 	depth++;
 	if (depth != 1) {
@@ -199,22 +199,22 @@ test(int nowait)
 	check();
 
 	pid1 = dofork();
-	nprintf(".");
+	tprintf(".\n");
 	write(fd, "B", 1);
 	depth++;
 	if (depth != 2) {
 		warnx("depth %d, should be 2", depth);
 	}
 	check();
-//
-//	pid2 = dofork();
-//	nprintf(".");
-//	write(fd, "C", 1);
-//	depth++;
-//	if (depth != 3) {
-//		warnx("depth %d, should be 3", depth);
-//	}
-//	check();
+
+	pid2 = dofork();
+	tprintf(".");
+	write(fd, "C", 1);
+	depth++;
+	if (depth != 3) {
+		warnx("depth %d, should be 3", depth);
+	}
+	check();
 //
 //	pid3 = dofork();
 //	nprintf(".");
@@ -231,12 +231,12 @@ test(int nowait)
 	 */
 //	dowait(nowait, pid3);
 //	nprintf(".");
-//	dowait(nowait, pid2);
-//	nprintf(".");
+	dowait(nowait, pid2);
+	tprintf(".");
 	dowait(nowait, pid1);
-	nprintf(".");
+	tprintf(".");
 	dowait(nowait, pid0);
-	nprintf(".");
+	tprintf(".");
 
 	// Check if file contents are correct
 	// lseek may not be implemented..so close and reopen
@@ -287,7 +287,7 @@ int
 main(int argc, char *argv[])
 {
 	static const char expected[] =
-		"|----------------------------|\n";
+		"|-----------------|\n";
 	int nowait=0;
 
 	if (argc==2 && !strcmp(argv[1], "-w")) {

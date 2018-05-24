@@ -33,9 +33,9 @@ int sys_fork(struct trapframe *tf, pid_t *pid) {
         return EMPROC;
     }
 
-    if (tf == NULL) {
-        return EFAULT;
-    }
+//    if (tf == NULL) {
+//        return EFAULT;
+//    }
 
     /*
      * CREATE A NEW PROCESS STRUCT
