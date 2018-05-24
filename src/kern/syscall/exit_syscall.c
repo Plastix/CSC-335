@@ -9,7 +9,7 @@ void sys__exit(int code) {
 
     curproc->return_value = code;
 
-    local_table_close_all(curproc->local_file_table);
+//    local_table_close_all(curproc->local_file_table);
 
     // TODO Kill Children
 

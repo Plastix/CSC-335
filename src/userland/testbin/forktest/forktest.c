@@ -151,7 +151,7 @@ static
 void
 test(int nowait)
 {
-	int pid0, pid1, pid2, pid3;
+	int pid0, pid1;//, pid2, pid3;
 	int depth = 0;
 
 	/*
@@ -206,33 +206,33 @@ test(int nowait)
 		warnx("depth %d, should be 2", depth);
 	}
 	check();
-
-	pid2 = dofork();
-	nprintf(".");
-	write(fd, "C", 1);
-	depth++;
-	if (depth != 3) {
-		warnx("depth %d, should be 3", depth);
-	}
-	check();
-
-	pid3 = dofork();
-	nprintf(".");
-	write(fd, "D", 1);
-	depth++;
-	if (depth != 4) {
-		warnx("depth %d, should be 4", depth);
-	}
-	check();
+//
+//	pid2 = dofork();
+//	nprintf(".");
+//	write(fd, "C", 1);
+//	depth++;
+//	if (depth != 3) {
+//		warnx("depth %d, should be 3", depth);
+//	}
+//	check();
+//
+//	pid3 = dofork();
+//	nprintf(".");
+//	write(fd, "D", 1);
+//	depth++;
+//	if (depth != 4) {
+//		warnx("depth %d, should be 4", depth);
+//	}
+//	check();
 
 	/*
 	 * These must be called in reverse order to avoid waiting
 	 * improperly.
 	 */
-	dowait(nowait, pid3);
-	nprintf(".");
-	dowait(nowait, pid2);
-	nprintf(".");
+//	dowait(nowait, pid3);
+//	nprintf(".");
+//	dowait(nowait, pid2);
+//	nprintf(".");
 	dowait(nowait, pid1);
 	nprintf(".");
 	dowait(nowait, pid0);

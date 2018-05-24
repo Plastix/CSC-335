@@ -14,11 +14,11 @@ int sys_close(int fd) {
         return EBADF;
     }
 
-    int err = local_table_close_file(curproc->local_file_table, fd);
-
-    if (err) {
-        return err;
-    }
+//    int err = local_table_close_file(curproc->local_file_table, fd);
+//
+//    if (err) {
+//        return err;
+//    }
 
     /*on success , return 0*/
     return 0;

@@ -32,6 +32,10 @@ int sys_fork(struct trapframe *tf, pid_t *pid) {
     if (curproc->p_num_childs >= MAX_CHILDS) {
         return EMPROC;
     }
+    
+    if (tf == NULL) {
+        return EFAULT;
+    }
 
     /*
      * CREATE A NEW PROCESS STRUCT
