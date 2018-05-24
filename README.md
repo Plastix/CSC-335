@@ -19,3 +19,7 @@ debugger to attach.
 ### GDB Settings
 GDB is setup to automatically connect to the OS via the `root/.gdbinit` file. If you want to setup breakpoints 
 automatically or define custom macros edit that file.
+
+### Implementation Information
+- For design changes from the original design document see the [design changes document](src/design/design-choices.md)
+- See the [status document](src/design/project3-status.md) for information about what is implemented and working.
