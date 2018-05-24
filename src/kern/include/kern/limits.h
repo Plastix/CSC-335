@@ -64,6 +64,7 @@
 
 /* Max bytes for an exec function (should be at least 16K) */
 #define __ARG_MAX       (64 * 1024)
+#define __ARG_MAX_LEN   128
 
 
 /*
