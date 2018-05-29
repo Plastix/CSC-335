@@ -14,7 +14,8 @@ into `master` yet.
 - `fork()` (5 - James)
 - `waitpid()` (5 -James)
 
-These system calls pass the following `testbins`
+These system calls pass the following `testbins`:
+
 - `opentest`
 - `closetest`
 - `readwritetest`
