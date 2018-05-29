@@ -40,14 +40,14 @@ These system calls pass the following `testbins`
     + We already have a global lock for protecting the running processes buffer. We will use this lock to make `exit()` atomic.
 - `lseek()` (3 - Violet)
     + Code is written and passed majority of the badcall test (panic due to waitpid). Fixed the 64 bits issue but still failing bigseek test.
-- `dup2()` (3 - Violet)
+- `dup2()` (4 - Violet)
     + Code is written and looks like to function mostly correct. It passed all badcall tests except the last one 'copying stdin to test'. Right now I have some dummy codes to prevent copy stdin from panicking, but that need to be fixed later.
     Also I haven't been able to fully test the function of the syscall. When I tried to test the syscall using tests in the testbin, I couldn't find a test that can get to the point that dup2 is called. ('psort' fails on waitpid)
-- `chdir()` (3 - Violet)
+- `chdir()` (4 - Violet)
     + Code is written and passed all badcall tests. Also having trouble to test the function of the syscall. In both rmdirtest and rmtest, chdir is called after mkdir, but mkdir is currently not implemented. 
     + This syscall needs to be tested before pushing to master, but shouldn't have many issues.
-- `getcwd()` (3 - Violet)
-    + Code is written and passed all badcall tests.   
+- `getcwd()` (4 - Violet)
+    + Code is written and passed all badcall tests. I think the structure is correct but I haven't test in using tests in the testbin.
 
 
 ## Individual Questions
@@ -81,7 +81,8 @@ The part I mostly focused on was filesystem calls. I look at what kind of file
 operations can VFS layer handle and how to interface the VFS functions with our 
 implementation. I have trouble to figure out how to test the syscalls. Not much 
 tests in the testbin call on syscalls I implemented, and many are not able to
-get to the point where my syscalls can be called. `lseek()` is special on the 
+get to the point where my syscalls can be called. I hope to know how to handle 
+such situation and start testing earlier. `lseek()` is special on the 
 return value. I attempted to combine results from two registers but that didn't 
 work so well and I didn't notice there are two functions exist already can handle 
 that. Now the `lseek()` is fixed with Aidan's help. 
