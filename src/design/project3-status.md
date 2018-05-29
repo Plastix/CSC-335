@@ -38,8 +38,9 @@ These system calls pass the following `testbins`
     + Killing process threads is not currently handled yet. We will need to move child threads to the zombie list and then exorcise them.
     + I was preoccupied with the filesystem syscalls and left this to the last minute. I wasn't expecting it to be so challenging and this is why the implementation is unfinished. This syscall is split into two parts: `proc_exit()` and `proc_destroy()`. `proc_exit()` is responsible for deallocating all the unnecessary resources inside of the PCB and all the children PCBs. `proc_destroy()` is what actually deallocates the PCB struct itself after `proc_exit()` has been called. Since we need the PCB to be kept around for `waitpid()`, `waitpid()` will make sure to cleanup using `proc_destroy()` once the child is collected.
     + We already have a global lock for protecting the running processes buffer. We will use this lock to make `exit()` atomic.
-- `lseek()` (3 - Violet)
-    + Code is written and passed majority of the badcall test (panic due to waitpid). Fixed the 64 bits issue but still failing bigseek test.
+- `lseek()` (3 - Violet when turned in; should be a 4 in current stage)
+    + Code is written and passed majority of the badcall test (panic due to waitpid). 
+    + Previous the 64 bits return value wasn't returned correctly. Now this issue should be fixed but still failing bigseek test.
 - `dup2()` (4 - Violet)
     + Code is written and looks like to function mostly correct. It passed all badcall tests except the last one 'copying stdin to test'. Right now I have some dummy codes to prevent copy stdin from panicking, but that need to be fixed later.
     Also I haven't been able to fully test the function of the syscall. When I tried to test the syscall using tests in the testbin, I couldn't find a test that can get to the point that dup2 is called. ('psort' fails on waitpid)
