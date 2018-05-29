@@ -32,8 +32,10 @@ These system calls pass the following `testbins`
     + Code is written and seems like it should be correct. However, the `bigexec` and `badcall:exec` tests both fail, which indicates something is wrong with the code. My approach to implementing `execv` was to take use the `runprogram` method in `syscall.c` as a prototype and try to adjust its code to work as `execv`. That meant dealing with user/kernel memory movement, primarily getting the program's arguments and placing them in the proper spot on the new program's stack. I suspect that my method of placing the arguments in the stack and giving the new program a pointer to them is faulty. Specifically, I'm not sure where to put the argument strings in memory, and sure determine that.
 - `exit()` (3 - Aidan)
     + Code is written to handle cascading termination and de-allocation of PCBs/PCB resources. This currently panics 
-    with some `kfree` issues.
-    + The primary reason why this doesn't work is because 
+    with some `kfree` issues. Why would I be getting panics from `kfree` complaining about page tables? Is this what happens when you double free?
+    + Killing process threads is not currently handled yet. We will need to move child threads to the zombie list and then exorcise them.
+    + I was preoccupied with the filesystem syscalls and left this to the last minute. I wasn't expecting it to be so challenging and this is why the implementation is unfinished. This syscall is split into two parts: `proc_exit()` and `proc_destroy()`. `proc_exit()` is responsible for deallocating all the unnecessary resources inside of the PCB and all the children PCBs. `proc_destroy()` is what actually deallocates the PCB struct itself after `proc_exit()` has been called. Since we need the PCB to be kept around for `waitpid()`, `waitpid()` will make sure to cleanup using `proc_destroy()` once the child is collected.
+    + We already have a global lock for protecting the running processes buffer. We will use this lock to make `exit()` atomic.
 - `lseek()` (3 - Violet)
 - `dup2()` (3 - Violet)
 - `chdir()` (3 - Violet)
@@ -89,4 +91,9 @@ We will try to do more peer programming going forward. It is always good to have
 another set of eyes on very complicated code. In addition, we also need to write 
 better commit messages so that teammates know what has changed.
 
-1. TODO
+1. Meet as as a group and discuss code
+2. Review & Merge Violet's syscall code into master 
+3. Debug all file system syscalls
+3. Debug `execv()`
+4. Debug and finish `exit()`
+5. Final testing
