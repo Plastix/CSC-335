@@ -5,7 +5,7 @@ definitely memory leaks in our implementation (Probably because de-allocation in
 Violet has a bunch of code to handle the remaining unimplemented filesystem syscalls. This code hasn't made it 
 into `master` yet.
 
-## Working
+## Syscalls: Working
 - `open()` (5 - Aidan)
 - `read()` (5 - Aidan)
 - `write()` (5 - Aidan)
@@ -27,33 +27,56 @@ These system calls pass the following `testbins`
 - `badcall:close`
 - `testfork`
 
-## Not Finished
+## Syscalls: Not Finished
 - `execv()` (2 - James)
     + Code is written and seems like it should be correct. However, the `bigexec` and `badcall:exec` tests both fail, which indicates something is wrong with the code. My approach to implementing `execv` was to take use the `runprogram` method in `syscall.c` as a prototype and try to adjust its code to work as `execv`. That meant dealing with user/kernel memory movement, primarily getting the program's arguments and placing them in the proper spot on the new program's stack. I suspect that my method of placing the arguments in the stack and giving the new program a pointer to them is faulty. Specifically, I'm not sure where to put the argument strings in memory, and sure determine that.
 - `exit()` (3 - Aidan)
     + Code is written to handle cascading termination and de-allocation of PCBs/PCB resources. This currently panics 
     with some `kfree` issues.
-    + 
-- `lseek()` (# - Violet)
-- `dup2()` (# - Violet)
-- `chdir()` (# - Violet)
-- `getcwd()` (# - Violet)
-- 
+    + The primary reason why this doesn't work is because 
+- `lseek()` (3 - Violet)
+- `dup2()` (3 - Violet)
+- `chdir()` (3 - Violet)
+- `getcwd()` (3 - Violet)
+
 
 ## Individual Questions
-### Aidan: TODO
+### Aidan:
+I learned a lot about the VFS layer in OS161 since I wrote `open()`, `read()`, 
+`write()`, and implemented almost all of the file table operations. A few of
+my file table operations assume that when you open an already open `vnode` via
+`vfs_open()`, you get back the exact same reference and I want to know if this is
+true. I encountered quite a few issues because I made very silly programming 
+mistakes. I forgot to set the value of a return pointer in one of my file table
+methods which was very hard to track down because it caused a `KASSERT` to fail
+deep inside of OS161 code.
 
 ### James:
-The subsystem I learned most about was the address space and process memory management subsystem, which includes `struct addrspace` and `struct trapframe` objects. This subsystem was heavily used in the `fork()` and `execv()` methods, but is also important for `waitpid()`. Also important for `fork()` and `waitpid()` was the `struct thread` object and some understanding of how threads are handled by the CPU. I really wish I knew how to adjustthe memory size. it seems like it is currently quite small, which makes memory leaks a larger problem. Although these leaks should be addressed, I'd like confirmation that my methods work as expected without always crashing from lack of memory. `fork()` and `execv()` were both more difficult than I anticipated because I underestimated how hard figuring out memory issues would be. My primary difficulty was in figuring out exactly how OS/161 manages process memory.
-
-
-## Future work
+The subsystem I learned most about was the address space and process memory 
+management subsystem, which includes `struct addrspace` and `struct trapframe` 
+objects. This subsystem was heavily used in the `fork()` and `execv()` methods, 
+but is also important for `waitpid()`. Also important for `fork()` and `waitpid()` 
+was the `struct thread` object and some understanding of how threads are handled 
+by the CPU. I really wish I knew how to adjust the memory size. it seems like it 
+is currently quite small, which makes memory leaks a larger problem. Although 
+these leaks should be addressed, I'd like confirmation that my methods work as 
+expected without always crashing from lack of memory. `fork()` and `execv()` 
+were both more difficult than I anticipated because I underestimated how hard 
+figuring out memory issues would be. My primary difficulty was in figuring out 
+exactly how OS/161 manages process memory.
 
 
 ## Design Document
 We definitely didn't put enough thought and design into the open file table. 
-Aidan ended up redesigning the entire file table subsystem. This was a lot
-more work than 
+Aidan ended up redesigning the entire file table subsystem the Monday before the
+project was due. This was a lot more work than anticipated and it meant that our 
+design document changed substantally. In addition, we should have defined interfaces
+in header files well in advance which would allow group members to write their
+code without having to wait on the file table implementation. On the other hand,
+defining our internal syscall methods and wiring them up to the syscall dispatcher
+was easier than expected. After returning from a syscall, there is already code
+that converts errors to `-1` return values and sets the `erno` value for us.
+
 
 ## Group Work
 Our group worked well together. Despite the fact that we had differing schedules, 
@@ -61,6 +84,9 @@ we communicated a lot on Slack and worked on our individual git branches without
 much conflict. We were able to get in a few good code reviews which caught some
 bugs early on (but apparently not enough). 
 
-## Timeline
-???
+## Future Work & Timeline
+We will try to do more peer programming going forward. It is always good to have 
+another set of eyes on very complicated code. In addition, we also need to write 
+better commit messages so that teammates know what has changed.
 
+1. TODO
