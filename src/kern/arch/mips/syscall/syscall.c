@@ -35,6 +35,7 @@
 #include <thread.h>
 #include <current.h>
 #include <syscall.h>
+#include <endian.h>
 #include <copyinout.h>
 
 /*
@@ -79,11 +80,8 @@ void
 syscall(struct trapframe *tf) {
     int callno;
     int32_t retval;
+    int32_t retval2;
     int err;
-
-//    int64_t retval64;
-//    int nextra;
-//    bool handle64;
 
     KASSERT(curthread != NULL);
     KASSERT(curthread->t_curspl == 0);
@@ -101,8 +99,10 @@ syscall(struct trapframe *tf) {
      */
 
     retval = 0;
+    retval2 = 0;
 
-//    handle64 = false; // ??
+    // Used for lseek
+    uint64_t pos;
 
     switch (callno) {
         case SYS_reboot:
@@ -158,22 +158,23 @@ syscall(struct trapframe *tf) {
             err = sys_chdir((const_userptr_t) tf->tf_a0, &retval);
             break;
         case SYS_lseek:
-//            err = copyin((userptr_t)(tf->tf_sp+16), &nextra, sizeof(int));
-//            if (err)
- //               break;
-            err = sys_lseek(tf->tf_a0, tf->tf_a1, tf->tf_a2, (off_t *) &retval);
-//            err = sys_lseek(tf->tf_a0, MAKE_64BIT(tf->tf_a2, tf->tf_a3), nextra, &retval64);
-//            handle64 = true;
+            join32to64(tf->tf_a2, tf->tf_a3, &pos);
+
+            int whence;
+            err = copyin((const_userptr_t) (tf->tf_sp + 16), &whence, sizeof(int));
+            if(err){
+                break;
+            }
+
+            off_t return_offset;
+            err = sys_lseek(tf->tf_a0, pos, whence, &return_offset);
+            split64to32((uint64_t) return_offset, (uint32_t *) &retval, (uint32_t *) &retval2);
             break;
         case SYS_dup2:
             err = sys_dup2(tf->tf_a0, tf->tf_a1, &retval);
             break;
         case SYS___getcwd:
             err = sys____getcwd((userptr_t) tf->tf_a0, tf->tf_a1, &retval);
-            break;
-
-        case SYS_mkdir:
-            err = sys_mkdir((userptr_t)tf->tf_a0, (mode_t)tf->tf_a1, &retval);
             break;
 
         default:
@@ -191,15 +192,10 @@ syscall(struct trapframe *tf) {
          */
         tf->tf_v0 = err;
         tf->tf_a3 = 1;      /* signal an error */
-    }
-//    else if (handle64) {
-//        tf->tf_a3 = 0;
-//        tf->tf_v0 = GET_HI(retval64);
-//        tf->tf_v1 = GET_LO(retval64);
-//    }
-    else {
+    } else {
         /* Success. */
         tf->tf_v0 = retval;
+        tf->tf_v1 = retval2; // For 64 bit arguments
         tf->tf_a3 = 0;      /* signal no error */
     }
 
