@@ -79,7 +79,12 @@ exactly how OS/161 manages process memory.
 ### Violet:
 The part I mostly focused on was filesystem calls. I look at what kind of file 
 operations can VFS layer handle and how to interface the VFS functions with our 
-implementation. I have some trouble testing the syscalls since the 
+implementation. I have trouble to figure out how to test the syscalls. Not much 
+tests in the testbin call on syscalls I implemented, and many are not able to
+get to the point where my syscalls can be called. `lseek()` is special on the 
+return value. I attempted to combine results from two registers but that didn't 
+work so well and I didn't notice there are two functions exist already can handle 
+that. Now the `lseek()` is fixed with Aidan's help. 
 
 ## Design Document
 We definitely didn't put enough thought and design into the open file table. 
