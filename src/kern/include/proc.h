@@ -54,7 +54,16 @@ File_Desc *stderr_fd;
 #define MAX_PROCS 128
 #define MAX_CHILDS 32
 
-struct proc *Global_Proc_Table[MAX_PROCS];
+typedef struct {
+    struct proc *pcb;
+    bool termed;
+    bool p_termed;
+    int exitcode;
+    struct cv *waiting;
+
+} pt_entry;
+
+pt_entry *Global_Proc_Table[MAX_PROCS];
 struct lock *GPT_lock;
 unsigned GLOBAL_PROC_COUNT;
 
@@ -105,8 +114,6 @@ struct proc {
     unsigned p_num_childs;
 
     struct proc *p_childs[MAX_CHILDS];
-
-    struct cv *waiting;
 
     Local_File_Table *local_file_table;
 

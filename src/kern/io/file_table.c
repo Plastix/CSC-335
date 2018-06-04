@@ -131,6 +131,14 @@ Local_File_Table *local_table_create() {
     return t;
 }
 
+void local_table_destroy(Local_File_Table *table) {
+    KASSERT(table != NULL);
+    local_table_close_all(table);
+    lock_destroy(table->lk);
+    kfree(table->files);
+    kfree(table);
+}
+
 int local_table_add_file(Local_File_Table *table, File *file, int flags, int *ret) {
     KASSERT(table != NULL);
     KASSERT(file != NULL);

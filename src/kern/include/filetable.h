@@ -79,6 +79,8 @@ typedef struct {
 // Local File Table Operations
 Local_File_Table *local_table_create(void);
 
+void local_table_destroy(Local_File_Table *table);
+
 int local_table_add_file(Local_File_Table *table, File *file, int flags, int *ret);
 
 File_Desc *local_table_get(Local_File_Table *table, int file_handle);

@@ -4,7 +4,6 @@
 
 #include <types.h>
 #include <syscall.h>
-#include <lib.h>
 #include <copyinout.h>
 #include <kern/errno.h>
 #include <proc.h>
@@ -12,15 +11,9 @@
 #include <current.h>
 
 int sys_waitpid(pid_t *ret_pid, userptr_t target_pid, userptr_t ret_status, userptr_t opts) {
-    /*
-     * First, ensure paramters are not null
-     */
-    KASSERT(ret_pid != NULL);
-    KASSERT(target_pid != NULL);
-
     pid_t tgt_pid;
     int k_opts;
-    struct proc *target_proc;
+    pt_entry *tgt_entry;
 
     /*
      * CAST PARAMS TO PROPER TYPE
@@ -39,7 +32,12 @@ int sys_waitpid(pid_t *ret_pid, userptr_t target_pid, userptr_t ret_status, user
     /*
      * CHECK TARGET PROC IS VALID
      */
-    if (Global_Proc_Table[tgt_pid] == NULL) {
+    if (tgt_pid <= 0) {
+        return ESRCH;
+    }
+
+    tgt_entry = Global_Proc_Table[tgt_pid];
+    if (tgt_entry == NULL) {
         return ESRCH;
     }
 
@@ -47,7 +45,7 @@ int sys_waitpid(pid_t *ret_pid, userptr_t target_pid, userptr_t ret_status, user
      * CHECK TARGET PROC IS CHILD OF CALLING PROC
      */
     int found = 0;
-    for (unsigned i=0; i<curproc->p_num_childs; i++) {
+    for (unsigned i = 0; i < MAX_CHILDS; i++) {
         if (curproc->p_childs[i] != NULL && curproc->p_childs[i]->pid == tgt_pid) {
             found++;
         }
@@ -60,35 +58,26 @@ int sys_waitpid(pid_t *ret_pid, userptr_t target_pid, userptr_t ret_status, user
      * GET TARGET PROC FROM GLOBAL TABLE
      */
     lock_acquire(GPT_lock);
-    target_proc = Global_Proc_Table[tgt_pid];
-    lock_release(GPT_lock);
 
-    /*
-     * WAIT ON TARGET PROC WAITING CV IF IT HASN'T RETURNED
-     */
-    if (target_proc->p_thread->t_state != S_ZOMBIE) {
-        lock_acquire(target_proc->p_mutex);
-        cv_wait(target_proc->waiting, target_proc->p_mutex);
-        lock_release(target_proc->p_mutex);
+    if (!tgt_entry->termed) {
+        cv_wait(tgt_entry->waiting, GPT_lock);
     }
+
     /*
      * THE FOLLOWING IS ONLY REACHED WHEN THE TARGET PROC DIES
      */
 
     // SET RETURN PID
     *ret_pid = tgt_pid;
+
     // GET TARGET RETURN STATUS
     if (ret_status != NULL) {
-        copyout(&target_proc->return_value, ret_status, sizeof(int));
+        copyout(&tgt_entry->exitcode, ret_status, sizeof(int));
     }
 
-    /*
-     * Things to be done:
-     *  - Get pointer to struct proc referenced by PID from a global table
-     *  - Call `wait()` on the target process' `proc->waiting` cv
-     *  - Once the target process terminates, the `wait()` call will return
-     *  - Get `proc->return_vale` from the target process and return it
-     *
-     */
+    Global_Proc_Table[tgt_pid] = NULL;
+
+    lock_release(GPT_lock);
+
     return 0;
 }
