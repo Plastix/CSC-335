@@ -129,9 +129,9 @@ syscall(struct trapframe *tf) {
 
         case SYS_waitpid:
             err = sys_waitpid(&retval,
-                              (userptr_t) tf->tf_a0,
-                              (userptr_t) tf->tf_a1,
-                              (userptr_t) tf->tf_a2);
+                              tf->tf_a0,
+                              (const_userptr_t) tf->tf_a1,
+                              tf->tf_a2);
             break;
 
         case SYS_open:
@@ -162,7 +162,7 @@ syscall(struct trapframe *tf) {
 
             int whence;
             err = copyin((const_userptr_t) (tf->tf_sp + 16), &whence, sizeof(int));
-            if(err){
+            if (err) {
                 break;
             }
 

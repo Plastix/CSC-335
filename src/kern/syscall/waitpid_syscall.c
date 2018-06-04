@@ -3,23 +3,19 @@
 //
 
 #include <types.h>
-#include <syscall.h>
 #include <copyinout.h>
 #include <kern/errno.h>
 #include <proc.h>
 #include <synch.h>
 #include <current.h>
+#include <syscall.h>
 
-int sys_waitpid(pid_t *ret_pid, userptr_t target_pid, userptr_t ret_status, userptr_t opts) {
-    pid_t tgt_pid;
-    int k_opts;
+int sys_waitpid(pid_t *ret_pid, int target_pid, const_userptr_t ret_status, int opts) {
+    int tgt_pid = target_pid;
+    int k_opts = opts;
     pt_entry *tgt_entry;
+    int err;
 
-    /*
-     * CAST PARAMS TO PROPER TYPE
-     */
-    copyin(target_pid, &tgt_pid, sizeof(pid_t));
-    copyin(opts, &k_opts, sizeof(int));
 
     /*
      * CHECK OPTS TO ENSURE IT IS 0
@@ -72,7 +68,11 @@ int sys_waitpid(pid_t *ret_pid, userptr_t target_pid, userptr_t ret_status, user
 
     // GET TARGET RETURN STATUS
     if (ret_status != NULL) {
-        copyout(&tgt_entry->exitcode, ret_status, sizeof(int));
+        err = copyout(&tgt_entry->exitcode, (userptr_t) ret_status, sizeof(int));
+        if (err) {
+            lock_release(GPT_lock);
+            return err;
+        }
     }
 
     Global_Proc_Table[tgt_pid] = NULL;

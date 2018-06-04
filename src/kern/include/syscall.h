@@ -76,7 +76,7 @@ int sys_fork(struct trapframe *tf, pid_t *pid);
 
 int sys_execv(const_userptr_t progname, const_userptr_t args);
 
-int sys_waitpid(pid_t *ret_pid, userptr_t target_pid, userptr_t ret_status, userptr_t opts);
+int sys_waitpid(pid_t *ret_pid, int target_pid, const_userptr_t ret_status, int opts);
 
 int sys_getpid(pid_t *ret_pid);
 
