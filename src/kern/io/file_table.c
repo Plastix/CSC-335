@@ -248,7 +248,7 @@ int local_table_copy(Local_File_Table *src, Local_File_Table *dest) {
     memcpy(dest->files, src->files, sizeof(src->files));
 
     // Increment ref counts on all copied files
-    for (int i = 0; i < src->num_open_files; i++) {
+    for (int i = 3; i < MAX_LOCAL_TABLE_SIZE; i++) {
         File_Desc *file_desc = src->files[i];
         // Super ugly null checking
         if (file_desc != NULL) {
