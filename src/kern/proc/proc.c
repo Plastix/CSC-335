@@ -194,7 +194,7 @@ void proc_destroy(struct proc *proc) {
     KASSERT(proc != kproc);
 
     // Also closes all open files
-//    local_table_destroy(proc->local_file_table);
+    local_table_destroy(proc->local_file_table);
 
     lock_destroy(proc->p_mutex);
 
