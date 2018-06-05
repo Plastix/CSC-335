@@ -116,12 +116,6 @@ struct proc {
     struct proc *p_childs[MAX_CHILDS];
 
     Local_File_Table *local_file_table;
-
-    /*
-     * TODO: Add more data:
-     *      Add open files
-     *      CPU burst data (MAYBE LATER)
-     */
 };
 
 /* This is the process structure for the kernel and for kernel-only threads. */

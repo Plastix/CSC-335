@@ -9,9 +9,7 @@
 #include <addrspace.h>
 #include <kern/errno.h>
 #include <synch.h>
-#include <thread.h>
 #include <mips/trapframe.h>
-#include <filetable.h>
 //#include "../arch/mips/thread/switchframe.h"
 
 int sys_fork(struct trapframe *tf, pid_t *pid) {
@@ -50,6 +48,7 @@ int sys_fork(struct trapframe *tf, pid_t *pid) {
      * KEEP PARENT CWD
      */
     new_proc->p_cwd = curproc->p_cwd;
+    VOP_INCREF(new_proc->p_cwd);
 
     /*
      * COPY ADDRESS SPACE
@@ -81,7 +80,7 @@ int sys_fork(struct trapframe *tf, pid_t *pid) {
     }
 
     curproc->p_num_childs++;
-    for (int i=0; i<MAX_CHILDS; i++) {
+    for (int i = 0; i < MAX_CHILDS; i++) {
         if (curproc->p_childs[i] == NULL) {
             curproc->p_childs[i] = new_proc;
             break;

@@ -1,7 +1,3 @@
-//
-// Created by boggsj on 5/16/18.
-//
-
 #include <types.h>
 #include <copyinout.h>
 #include <kern/errno.h>
@@ -15,7 +11,6 @@ int sys_waitpid(pid_t *ret_pid, int target_pid, const_userptr_t ret_status, int 
     int k_opts = opts;
     pt_entry *tgt_entry;
     int err;
-
 
     /*
      * CHECK OPTS TO ENSURE IT IS 0
@@ -32,32 +27,38 @@ int sys_waitpid(pid_t *ret_pid, int target_pid, const_userptr_t ret_status, int 
         return ESRCH;
     }
 
+    lock_acquire(GPT_lock);
+
+    /*
+    * GET TARGET PROC FROM GLOBAL TABLE
+    */
     tgt_entry = Global_Proc_Table[tgt_pid];
     if (tgt_entry == NULL) {
+        lock_release(GPT_lock);
         return ESRCH;
     }
 
     /*
      * CHECK TARGET PROC IS CHILD OF CALLING PROC
      */
-    int found = 0;
+    bool found = false;
     for (unsigned i = 0; i < MAX_CHILDS; i++) {
         if (curproc->p_childs[i] != NULL && curproc->p_childs[i]->pid == tgt_pid) {
-            found++;
+            found = true;
+            break;
         }
     }
     if (!found) {
+        lock_release(GPT_lock);
         return ECHILD;
     }
 
-    /*
-     * GET TARGET PROC FROM GLOBAL TABLE
-     */
-    lock_acquire(GPT_lock);
 
     if (!tgt_entry->termed) {
         cv_wait(tgt_entry->waiting, GPT_lock);
     }
+
+    KASSERT(tgt_entry->termed);
 
     /*
      * THE FOLLOWING IS ONLY REACHED WHEN THE TARGET PROC DIES

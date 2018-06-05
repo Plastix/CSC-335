@@ -148,7 +148,7 @@ struct proc *proc_create(const char *name) {
 
     pt_entry *entry = create_entry(proc);
 
-    if(entry == NULL){
+    if (entry == NULL) {
         kfree(proc->p_name);
         lock_destroy(proc->p_mutex);
         kfree(proc);
@@ -193,6 +193,11 @@ void proc_destroy(struct proc *proc) {
     KASSERT(proc != NULL);
     KASSERT(proc != kproc);
 
+    // Also closes all open files
+//    local_table_destroy(proc->local_file_table);
+
+    lock_destroy(proc->p_mutex);
+
     /*
      * We don't take p_lock in here because we must have the only
      * reference to this structure. (Otherwise it would be
@@ -204,6 +209,7 @@ void proc_destroy(struct proc *proc) {
         VOP_DECREF(proc->p_cwd);
         proc->p_cwd = NULL;
     }
+
 
     /* VM fields */
     if (proc->p_addrspace) {
@@ -252,14 +258,12 @@ void proc_destroy(struct proc *proc) {
         as_destroy(as);
     }
 
-    // Also closes all open files
-    local_table_destroy(proc->local_file_table);
-
     KASSERT(proc->p_numthreads == 0);
     spinlock_cleanup(&proc->p_lock);
 
     kfree(proc->p_name);
     kfree(proc);
+
 }
 
 /*
@@ -390,6 +394,8 @@ proc_remthread(struct thread *t) {
     spl = splhigh();
     t->t_proc = NULL;
     splx(spl);
+
+    proc_destroy(proc);
 }
 
 /*

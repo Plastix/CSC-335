@@ -7,7 +7,8 @@
 void sys__exit(int code) {
     lock_acquire(GPT_lock);
 
-    pt_entry *current = Global_Proc_Table[curproc->pid];
+    struct proc *pcb = curproc;
+    pt_entry *current = Global_Proc_Table[pcb->pid];
 
     // Proc table invariant invalid
     KASSERT(current != NULL);
@@ -16,7 +17,7 @@ void sys__exit(int code) {
     current->exitcode = code;
 
     for (int i = 0; i < MAX_CHILDS; ++i) {
-        struct proc *child_pcb = curproc->p_childs[i];
+        struct proc *child_pcb = pcb->p_childs[i];
         if (child_pcb != NULL) {
             pt_entry *child = Global_Proc_Table[child_pcb->pid];
             KASSERT(child != NULL);
@@ -27,11 +28,18 @@ void sys__exit(int code) {
     cv_broadcast(current->waiting, GPT_lock);
 
     if (current->p_termed) {
-        Global_Proc_Table[curproc->pid] = NULL;
+        Global_Proc_Table[pcb->pid] = NULL;
+    }
+
+    for (int j = 0; j < MAX_CHILDS; ++j) {
+        struct proc *parent = curproc->p_parent;
+        if (parent->p_childs[j] == curproc) {
+            parent->p_childs[j] = NULL;
+            break;
+        }
     }
 
     lock_release(GPT_lock);
 
-    proc_destroy(current->pcb);
     thread_exit();
 }
