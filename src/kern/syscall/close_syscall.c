@@ -8,8 +8,6 @@
 /* close() system call */
 int sys_close(int fd) {
 
-    /* check if file handle at that position has an ref_count of 1*/
-
     if (fd < 0 || fd >= MAX_LOCAL_TABLE_SIZE) {
         return EBADF;
     }

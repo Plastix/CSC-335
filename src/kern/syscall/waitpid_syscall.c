@@ -7,8 +7,6 @@
 #include <syscall.h>
 
 int sys_waitpid(pid_t *ret_pid, int target_pid, const_userptr_t ret_status, int opts) {
-    int tgt_pid = target_pid;
-    int k_opts = opts;
     pt_entry *tgt_entry;
     int err;
 
@@ -16,14 +14,14 @@ int sys_waitpid(pid_t *ret_pid, int target_pid, const_userptr_t ret_status, int 
      * CHECK OPTS TO ENSURE IT IS 0
      *  - No other opts are implemented
      */
-    if (k_opts) {
+    if (opts) {
         return EINVAL;
     }
 
     /*
      * CHECK TARGET PROC IS VALID
      */
-    if (tgt_pid <= 0) {
+    if (target_pid <= 0) {
         return ESRCH;
     }
 
@@ -32,7 +30,7 @@ int sys_waitpid(pid_t *ret_pid, int target_pid, const_userptr_t ret_status, int 
     /*
     * GET TARGET PROC FROM GLOBAL TABLE
     */
-    tgt_entry = Global_Proc_Table[tgt_pid];
+    tgt_entry = Global_Proc_Table[target_pid];
     if (tgt_entry == NULL) {
         lock_release(GPT_lock);
         return ESRCH;
@@ -43,7 +41,7 @@ int sys_waitpid(pid_t *ret_pid, int target_pid, const_userptr_t ret_status, int 
      */
     bool found = false;
     for (unsigned i = 0; i < MAX_CHILDS; i++) {
-        if (curproc->p_childs[i] != NULL && curproc->p_childs[i]->pid == tgt_pid) {
+        if (curproc->p_childs[i] != NULL && curproc->p_childs[i]->pid == target_pid) {
             found = true;
             break;
         }
@@ -65,7 +63,7 @@ int sys_waitpid(pid_t *ret_pid, int target_pid, const_userptr_t ret_status, int 
      */
 
     // SET RETURN PID
-    *ret_pid = tgt_pid;
+    *ret_pid = target_pid;
 
     // GET TARGET RETURN STATUS
     if (ret_status != NULL) {
@@ -76,7 +74,7 @@ int sys_waitpid(pid_t *ret_pid, int target_pid, const_userptr_t ret_status, int 
         }
     }
 
-    Global_Proc_Table[tgt_pid] = NULL;
+    Global_Proc_Table[target_pid] = NULL;
 
     lock_release(GPT_lock);
 
