@@ -101,8 +101,8 @@ check(void)
 		seenpid = mypid;
 		if (seenpid != getpid()) {
 			errx(1, "pid mismatch (%d, should be %d) "
-			     "- your vm is broken!",
-			     seenpid, getpid());
+					"- your vm is broken!",
+				 seenpid, getpid());
 		}
 	}
 }
@@ -151,9 +151,9 @@ static
 void
 test(int nowait)
 {
-	int pid0, pid1, pid2;//, pid3;
+	int pid0, pid1, pid2, pid3;
 	int depth = 0;
-    tprintf("HEAD OF TEST METHOD\n");
+
 	/*
 	 * Caution: This generates processes geometrically.
 	 *
@@ -190,7 +190,7 @@ test(int nowait)
 	}
 
 	pid0 = dofork();
-	tprintf(".");
+	nprintf(".");
 	write(fd, "A", 1);
 	depth++;
 	if (depth != 1) {
@@ -199,7 +199,7 @@ test(int nowait)
 	check();
 
 	pid1 = dofork();
-	tprintf(".\n");
+	nprintf(".");
 	write(fd, "B", 1);
 	depth++;
 	if (depth != 2) {
@@ -208,35 +208,35 @@ test(int nowait)
 	check();
 
 	pid2 = dofork();
-	tprintf(".");
+	nprintf(".");
 	write(fd, "C", 1);
 	depth++;
 	if (depth != 3) {
 		warnx("depth %d, should be 3", depth);
 	}
 	check();
-//
-//	pid3 = dofork();
-//	nprintf(".");
-//	write(fd, "D", 1);
-//	depth++;
-//	if (depth != 4) {
-//		warnx("depth %d, should be 4", depth);
-//	}
-//	check();
+
+	pid3 = dofork();
+	nprintf(".");
+	write(fd, "D", 1);
+	depth++;
+	if (depth != 4) {
+		warnx("depth %d, should be 4", depth);
+	}
+	check();
 
 	/*
 	 * These must be called in reverse order to avoid waiting
 	 * improperly.
 	 */
-//	dowait(nowait, pid3);
-//	nprintf(".");
+	dowait(nowait, pid3);
+	nprintf(".");
 	dowait(nowait, pid2);
-	tprintf(".");
+	nprintf(".");
 	dowait(nowait, pid1);
-	tprintf(".");
+	nprintf(".");
 	dowait(nowait, pid0);
-	tprintf(".");
+	nprintf(".");
 
 	// Check if file contents are correct
 	// lseek may not be implemented..so close and reopen
@@ -287,7 +287,7 @@ int
 main(int argc, char *argv[])
 {
 	static const char expected[] =
-		"|-----------------|\n";
+			"|----------------------------|\n";
 	int nowait=0;
 
 	if (argc==2 && !strcmp(argv[1], "-w")) {

@@ -129,6 +129,7 @@ struct proc *proc_create(const char *name) {
 
     proc->p_mutex = lock_create("proc_lock");
     if (proc->p_mutex == NULL) {
+        local_table_destroy(proc->local_file_table);
         kfree(proc->p_name);
         kfree(proc);
         return NULL;
@@ -149,6 +150,7 @@ struct proc *proc_create(const char *name) {
     pt_entry *entry = create_entry(proc);
 
     if (entry == NULL) {
+        local_table_destroy(proc->local_file_table);
         kfree(proc->p_name);
         lock_destroy(proc->p_mutex);
         kfree(proc);
