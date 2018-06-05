@@ -25,6 +25,10 @@ int sys_lseek(int fd, off_t pos, int whence, off_t *retVal) {
         return EBADF;
     }
 
+    if (fdesc->standard != -1) {
+        return ESPIPE;
+    }
+
     lock_acquire(fdesc->lk);
 
     if (!VOP_ISSEEKABLE(fdesc->file->node)) {
