@@ -33,7 +33,7 @@ int sys_lseek(int fd, off_t pos, int whence, off_t *retVal) {
 
     if (!VOP_ISSEEKABLE(fdesc->file->node)) {
         lock_release(fdesc->lk);
-        return EINVAL;
+        return ESPIPE;
     }
 
     switch (whence) {

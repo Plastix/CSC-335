@@ -183,19 +183,13 @@ File_Desc *local_table_get(Local_File_Table *table, int file_handle) {
     return desc;
 }
 
-int local_table_close_file(Local_File_Table *table, int file_handle) {
-    KASSERT(table != NULL);
-
-    lock_acquire(table->lk);
-
+static int non_lock_close_file(Local_File_Table *table, int file_handle) {
     if (file_handle < 0 || file_handle >= MAX_LOCAL_TABLE_SIZE) {
-        lock_release(table->lk);
         return EBADF;
     }
 
     File_Desc *desc = table->files[file_handle];
     if (desc == NULL) {
-        lock_release(table->lk);
         return EBADF;
     }
 
@@ -206,9 +200,19 @@ int local_table_close_file(Local_File_Table *table, int file_handle) {
     // Deallocate resources if needed
     file_desc_destroy(desc);
 
+    return 0;
+}
+
+int local_table_close_file(Local_File_Table *table, int file_handle) {
+    KASSERT(table != NULL);
+
+    lock_acquire(table->lk);
+
+    int err = non_lock_close_file(table, file_handle);
+
     lock_release(table->lk);
 
-    return 0;
+    return err;
 }
 
 int local_table_close_all(Local_File_Table *table) {
@@ -283,7 +287,7 @@ int local_table_dup2(Local_File_Table *table, int old_file_handle, int new_file_
 
     File_Desc *n_desc = table->files[new_file_handle];
     if (n_desc != NULL) {
-        err = local_table_close_file(table, new_file_handle);
+        err = non_lock_close_file(table, new_file_handle);
         if (err) {
             lock_release(table->lk);
             return err;
