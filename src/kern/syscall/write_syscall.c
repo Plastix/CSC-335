@@ -15,41 +15,25 @@ static int write_to_disk(File_Desc *desc, const_userptr_t buf, size_t size, size
     lock_acquire(desc->lk);
 
     if (desc->flags == O_RDONLY) {
-        *ret = (size_t) -1;
         lock_release(desc->lk);
         return EBADF;
     }
 
     File *file = desc->file;
-
-    char *k_buffer = kmalloc(size);
-    if (k_buffer == NULL) {
-        *ret = (size_t) -1;
-        lock_release(desc->lk);
-        return ENOMEM;
-    }
-
     struct iovec iov;
     struct uio ku;
     int err;
 
     // Acquire the read/write lock protecting the vnode
     lock_acquire(file->lk);
-    err = copyin(buf, k_buffer, size);
-    if (err) {
-        *ret = (size_t) -1;
-        // Release both locks, must be in this order
-        lock_release(file->lk);
-        lock_release(desc->lk);
-        return err;
-    }
 
-    uio_kinit(&iov, &ku, k_buffer, size, desc->seek_location, UIO_WRITE);
+    uio_kinit(&iov, &ku, (void *) buf, size, desc->seek_location, UIO_WRITE);
+    ku.uio_segflg = UIO_USERSPACE;
+    ku.uio_space = curproc->p_addrspace;
     err = VOP_WRITE(file->node, &ku);
 
     // Reading file failed somehow
     if (err) {
-        *ret = (size_t) -1;
         // Release both locks, must be in this order
         lock_release(file->lk);
         lock_release(desc->lk);
@@ -77,7 +61,6 @@ static int write_std(File_Desc *desc, const_userptr_t buf, size_t size, size_t *
 
     char *bytes = kmalloc(size);
     if (bytes == NULL) {
-        *ret = (size_t) -1;
         lock_release(f->lk);
         lock_release(desc->lk);
         return ENOMEM;
@@ -85,20 +68,21 @@ static int write_std(File_Desc *desc, const_userptr_t buf, size_t size, size_t *
 
     int err = copyin(buf, bytes, size);
     if (err) {
-        *ret = (size_t) -1;
+        kfree(bytes);
         lock_release(f->lk);
         lock_release(desc->lk);
         return err;
     }
 
-    size_t read = 0;
-    while (read < size) {
-        putch(bytes[read]);
-        read++;
+    size_t written = 0;
+    while (written < size) {
+        putch(bytes[written]);
+        written++;
     }
 
-    *ret = read;
+    *ret = written;
 
+    kfree(bytes);
     lock_release(f->lk);
     lock_release(desc->lk);
 
