@@ -71,6 +71,8 @@ int sys_fork(struct trapframe *tf, pid_t *pid) {
     result = thread_fork("user_proc_thread", new_proc, enter_forked_process, new_tf, (unsigned long) new_proc->pid);
 
     if (result) {
+        proc_destroy(new_proc);
+        kfree(new_tf);
         lock_release(curproc->p_mutex);
         return result;
     }
