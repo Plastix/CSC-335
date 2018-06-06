@@ -30,6 +30,7 @@ int sys_open(const_userptr_t filename, int flags, int *fd) {
     // Atomic operation
     err = local_table_add_file(curproc->local_file_table, new_file, flags, fd);
     if (err) {
+        file_destroy(new_file);
         return err;
     }
 

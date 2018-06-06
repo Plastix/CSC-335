@@ -51,25 +51,18 @@ static File_Desc *file_desc_create(File *file, int flags, int standard) {
     return f;
 }
 
-// De-allocates the local file descriptor as long as the refcount is 1
-static void file_desc_destroy(File_Desc *file_desc) {
-    KASSERT(file_desc != NULL);
-
-    // Don't deallocate the global STDIN/OUT/ERR objects
-    if (file_desc == stdin_fd || file_desc == stdout_fd || file_desc == stderr_fd) {
-        return;
-    }
-
-    // Get the file the global file table
-    File *file = file_desc->file;
+bool file_destroy(File *file) {
     KASSERT(file != NULL);
+
+    bool removed = false;
 
     // Don't remove STDIN/STDOUT global files
     if (!file->is_standard) {
-        lock_acquire(global_file_table->lk);
 
         struct vnode *vn = file->node;
         KASSERT(vn != NULL);
+
+        lock_acquire(global_file_table->lk);
 
         // Check if vnode refcount is 1 since vfs_close() will decrement and deallocate itself
         if (vn->vn_refcount == 1) {
@@ -80,15 +73,16 @@ static void file_desc_destroy(File_Desc *file_desc) {
                 if (global_file_table->files[i] == file) {
                     global_file_table->files[i] = NULL;
                     global_file_table->num_open_files--;
-                    vfs_close(vn);
-                    lock_destroy(file->lk);
-                    kfree(file);
                     break;
                 }
             }
 
-            lock_destroy(file_desc->lk);
-            kfree(file_desc);
+            vfs_close(vn);
+            lock_destroy(file->lk);
+            kfree(file);
+
+            removed = true;
+
         } else {
             // Decrement vnode ref count
             // Don't deallocate file descriptor resources
@@ -98,6 +92,26 @@ static void file_desc_destroy(File_Desc *file_desc) {
         lock_release(global_file_table->lk);
     }
 
+    return removed;
+}
+
+// De-allocates the local file descriptor as long as the refcount is 1
+static void file_desc_destroy(File_Desc *file_desc) {
+    KASSERT(file_desc != NULL);
+
+    // Don't deallocate the global STDIN/OUT/ERR objects
+    if (file_desc == stdin_fd || file_desc == stdout_fd || file_desc == stderr_fd) {
+        return;
+    }
+
+    File *file = file_desc->file;
+    if (file != NULL) {
+        bool removed = file_destroy(file);
+        if (removed) {
+            lock_destroy(file_desc->lk);
+            kfree(file_desc);
+        }
+    }
 }
 
 ////////////////////////////////////

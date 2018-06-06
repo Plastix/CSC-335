@@ -98,6 +98,8 @@ int local_table_dup2(Local_File_Table *table, int old_file_handle, int new_file_
 // Global File Table Operations
 Global_File_Table *global_table_create(void);
 
+bool file_destroy(File *file);
+
 int global_table_open_file(char *filename, int flags, File **ret);
 
 
