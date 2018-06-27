@@ -1,0 +1,93 @@
+Script started on Sat 21 Apr 2018 01:35:52 PM UTC
+]0;trinity@zion: ~/shared/os161-piepera-proj1trinity@zion:~/shared/os161-piepera-proj1$ ./boot.sh 
+sys161: bind: Operation not permitted
+sys161: Could not set up meter socket; metering disabled
+sys161: System/161 release 2.0.8, compiled Jan  9 2017 17:17:19
+
+OS/161 base system version 2.0.3
+Copyright (c) 2000, 2001-2005, 2008-2011, 2013, 2014
+   President and Fellows of Harvard College.  All rights reserved.
+
+Put-your-group-name-here's system version 0 (PROJ2 #40)
+
+820k physical memory available
+Device probe...
+lamebus0 (system main bus)
+emu0 at lamebus0
+ltrace0 at lamebus0
+ltimer0 at lamebus0
+beep0 at ltimer0
+rtclock0 at ltimer0
+lrandom0 at lamebus0
+random0 at lrandom0
+lhd0 at lamebus0
+lhd1 at lamebus0
+lser0 at lamebus0
+con0 at lser0
+
+cpu0: MIPS/161 (System/161 2.x) features 0x0
+1 CPU online
+OS/161 kernel [? for menu]: llt 1
+
+Running test: interleaving_1 
+list: 0: 
+list size: 0
+Inserted 'A' into list with key 0 via Thread 1
+Inserted 'B' into list with key 0 via Thread 2
+list: 0: 0[B] 0[A] 
+list size: 2
+
+
+1 tests, 0 assertions, 0 failures
+Operation took 0.357893520 seconds
+OS/161 kernel [? for menu]: llt 2
+
+Running test: interleaving_2 
+list: 0: 0[A] 
+list size: 1
+Inserted 'B' into list with key 0 via Thread 1
+Removed head via Thread 2
+list: 0: 0[A] 
+list size: 1
+
+
+1 tests, 0 assertions, 0 failures
+Operation took 0.323893520 seconds
+OS/161 kernel [? for menu]: llt 3
+
+Running test: interleaving_3 
+list: 0: 0[A] 
+list size: 1
+Removed head via Thread 1
+Removed head via Thread 2
+list: 0: 
+list size: 0
+
+
+1 tests, 0 assertions, 0 failures
+Operation took 0.339893520 seconds
+OS/161 kernel [? for menu]: llt 4
+
+Running test: interleaving_4 
+list: 0: 
+list size: 0
+Prepended 'A' to list via Thread 1
+Prepended 'B' to list via Thread 2
+list: 0: -1[B] 0[A] 
+list size: 2
+
+
+1 tests, 0 assertions, 0 failures
+Operation took 0.335893520 seconds
+OS/161 kernel [? for menu]: q
+Shutting down.
+The system is halted.
+sys161: 436471950 cycles (79025812 run, 357446138 global-idle)
+sys161:   cpu0: 6622765 kern, 0 user, 0 idle; 18788 ll, 18788/0 sc, 101316 sync
+sys161: 1694 irqs 0 exns 0r/0w disk 26r/1666w console 0r/0w/1m emufs 0r/0w net
+sys161: Elapsed real time: 11.738100 seconds (37.1842 mhz)
+sys161: Elapsed virtual time: 14.567046272 seconds (25 mhz)
+]0;trinity@zion: ~/shared/os161-piepera-proj1trinity@zion:~/shared/os161-piepera-proj1$ exit
+exit
+
+Script done on Sat 21 Apr 2018 01:36:12 PM UTC
